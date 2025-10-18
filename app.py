@@ -1,86 +1,101 @@
+import os
 from flask import Flask, render_template, jsonify
-import os, yaml, random, pandas as pd
-from affiliates.awin import poll_awin_approvals
-from affiliates.rakuten import poll_rakuten_approvals
-from poster.publer_poster import post_content
+from apscheduler.schedulers.background import BackgroundScheduler
+import pandas as pd
+from dotenv import load_dotenv
+import logging
 
+# =========================
+# Load environment variables
+# =========================
+load_dotenv()
+
+AWIN_API_KEY = os.getenv("AWIN_API_KEY")
+RAKUTEN_API_KEY = os.getenv("RAKUTEN_API_KEY")
+PUBLISHER_ID = os.getenv("PUBLER_ACCOUNT_ID")
+PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
+
+# =========================
+# Flask Setup
+# =========================
 app = Flask(__name__)
 
-# Load config
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+# =========================
+# Logging Config
+# =========================
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# Load posts and templates
-def load_data():
-    try:
-        posts_df = pd.read_csv("data/posts.csv")
-        posts = posts_df.to_dict("records")
-    except Exception:
-        posts = []
-    try:
-        templates_df = pd.read_csv("data/templates.csv")
-        templates = templates_df.to_dict("records")
-    except Exception:
-        templates = []
-    random.shuffle(posts)
-    return posts, templates
-
-posts, templates = load_data()
-
-def save_posts():
-    pd.DataFrame(posts).to_csv("data/posts.csv", index=False)
-
-def check_approvals():
-    """Poll affiliates for new approvals and append generated posts."""
-    new_posts = []
-    try:
-        new_posts.extend(poll_awin_approvals(templates))
-    except Exception as e:
-        print(f"Awin poll error: {e}")
-    try:
-        new_posts.extend(poll_rakuten_approvals(templates))
-    except Exception as e:
-        print(f"Rakuten poll error: {e}")
-    if new_posts:
-        posts.extend(new_posts)
-        save_posts()
-    return new_posts
-
-def post_batch():
-    """Post a batch (up to 10 posts) to Publer via poster.publer_poster.post_content."""
-    try:
-        post_content(posts, templates)
-        save_posts()
-        return True
-    except Exception as e:
-        print(f"Posting error: {e}")
-        return False
+# =========================
+# ROUTES
+# =========================
 
 @app.route('/')
-def health():
-    return "SlickOfficials bot is live! Use /run/<token> and /post/<token> for cron triggers."
+def index():
+    return render_template('index.html')
 
-@app.route('/links')
-def links():
-    return jsonify({"offers": [p for p in posts if p.get("link")]})
 
 @app.route('/dashboard')
 def dashboard():
-    return render_template('dashboard.html', posts=posts[:10], config=config)
+    import os
+    import pandas as pd
 
-@app.route('/run/<token>')
-def run(token):
-    if token != os.getenv("MANUAL_RUN_TOKEN"):
-        return ("Invalid token!", 403)
-    new = check_approvals()
-    return {"added": len(new)}
+    posts_path = os.path.join(os.getcwd(), 'data', 'posts.csv')
+    templates_path = os.path.join(os.getcwd(), 'data', 'templates.csv')
 
-@app.route('/post/<token>')
-def post_now(token):
-    if token != os.getenv("MANUAL_RUN_TOKEN"):
-        return ("Invalid token!", 403)
-    ok = post_batch()
-    return ({"posted": ok})
+    posts, templates = [], []
 
+    try:
+        if os.path.exists(posts_path) and os.path.getsize(posts_path) > 0:
+            posts = pd.read_csv(posts_path).to_dict(orient='records')
+        else:
+            posts = [{"title": "No posts found", "content": "Upload your first post!"}]
+    except Exception as e:
+        logger.error(f"Error loading posts.csv: {e}")
+        posts = [{"title": "Error loading posts", "content": str(e)}]
+
+    try:
+        if os.path.exists(templates_path) and os.path.getsize(templates_path) > 0:
+            templates = pd.read_csv(templates_path).to_dict(orient='records')
+        else:
+            templates = [{"name": "Default Template", "text": "Start adding templates."}]
+    except Exception as e:
+        logger.error(f"Error loading templates.csv: {e}")
+        templates = [{"name": "Error loading templates", "text": str(e)}]
+
+    return render_template('dashboard.html', posts=posts, templates=templates)
+
+
+@app.route('/health')
+def health_check():
+    """Simple health endpoint for Render"""
+    return jsonify({"status": "ok"})
+
+
+# =========================
+# JOB: Auto Post Scheduler
+# =========================
+def auto_post():
+    logger.info("Auto-post job started 🚀")
+    try:
+        from poster.publer_poster import publish_post
+        publish_post()
+        logger.info("Auto-post job completed ✅")
+    except Exception as e:
+        logger.error(f"Auto-post failed: {e}")
+
+
+# =========================
+# Scheduler Setup
+# =========================
+scheduler = BackgroundScheduler()
+scheduler.add_job(auto_post, 'interval', hours=6)
+scheduler.start()
+
+
+# =========================
+# MAIN
+# =========================
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.getenv("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
