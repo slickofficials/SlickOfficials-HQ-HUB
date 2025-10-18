@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: slickofficials-auto-hq
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python app.py
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEFAULT_IMAGE_URL
+        value: https://i.imgur.com/fitness1.jpg

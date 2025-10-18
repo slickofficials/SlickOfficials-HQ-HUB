@@ -1,0 +1,11 @@
+app:
+  name: SlickOfficials Auto HQ
+  version: 1.0.0
+affiliates:
+  awin:
+    enabled: true
+  rakuten:
+    enabled: true
+publer:
+  enabled: true
+  max_posts_per_day: 1500

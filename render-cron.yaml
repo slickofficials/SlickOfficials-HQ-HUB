@@ -1,0 +1,8 @@
+cron:
+  - name: run-approvals
+    schedule: "0 2 * * *" # every day at 02:00 WAT
+    command: curl https://<your-app-name>.onrender.com/run/<MANUAL_RUN_TOKEN>
+
+  - name: post-batch
+    schedule: "*/10 * * * *" # every 10 minutes
+    command: curl https://<your-app-name>.onrender.com/post/<MANUAL_RUN_TOKEN>

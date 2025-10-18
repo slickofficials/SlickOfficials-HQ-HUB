@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SlickOfficials Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>SlickOfficials Dashboard</h1>
+    <h2>Recent Posts (Top 10)</h2>
+    <ul>
+        {% for post in posts %}
+        <li>{{ post.post_text }} (Platforms: {{ post.platform }})</li>
+        {% endfor %}
+    </ul>
+    <h2>Config</h2>
+    <pre>{{ config | tojson }}</pre>
+    <a href="/">Back to Home</a>
+</body>
+</html>
