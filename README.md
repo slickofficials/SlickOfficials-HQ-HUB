@@ -1,17 +1,16 @@
-# SlickOfficials Auto HQ - Deployable Project
+# SlickOfficials HQ Hub 🚀
 
-## Setup
-1. Add your environment variables in Render (or .env locally):
-   - AWIN_API_TOKEN, AWIN_PUBLISHER_ID
-   - RAKUTEN_WEBSERVICES_TOKEN, RAKUTEN_SECURITY_TOKEN, RAKUTEN_SCOPE_ID
-   - PUBLER_API_KEY, PUBLER_WORKSPACE_ID
-   - INSTAGRAM_ACCOUNT_ID, FACEBOOK_ACCOUNT_ID, TWITTER_ACCOUNT_ID, TIKTOK_ACCOUNT_ID
-   - DEFAULT_IMAGE_URL (optional)
-   - MANUAL_RUN_TOKEN (a secure secret)
+Your automated affiliate-marketing & content-posting control center.
 
-2. Deploy to Render (or run locally).
+## 🌍 What It Does
+- Pulls **Awin** and **Rakuten** affiliate offers automatically.
+- Creates AI-optimized captions for each offer.
+- Posts across **Instagram, Facebook, Twitter/X, and TikTok** every 4 hours via Publer.
+- Displays analytics and account status in a password-protected dashboard.
 
-## How it works
-- This version is cron-friendly: no infinite background loop.
-- Use the `/run/<token>` endpoint to trigger affiliate approval checks.
-- Use the `/post/<token>` endpoint to schedule a batch of posts to Publer.
+## 🛠️ Setup Instructions
+
+1. **Clone this repo**
+   ```bash
+   git clone https://github.com/<your-username>/SlickOfficials-HQ-HUB.git
+   cd SlickOfficials-HQ-HUB
