@@ -4,53 +4,35 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    # Use gunicorn with a single worker so scheduler doesn't duplicate runs
-    startCommand: gunicorn app:app -w 1 --threads 2 -b 0.0.0.0:$PORT
+    startCommand: gunicorn app:app
     envVars:
       - key: PORT
         value: 5000
       - key: PYTHON_VERSION
         value: 3.11.9
-      - key: AWIN_API_TOKEN
-        sync: false
-      - key: AWIN_PUBLISHER_ID
-        value: "2615532"
-        sync: false
-      - key: RAKUTEN_WEBSERVICES_TOKEN
-        sync: false
-      - key: RAKUTEN_SECURITY_TOKEN
-        sync: false
-      - key: RAKUTEN_SCOPE_ID
-        value: "4599968"
-        sync: false
       - key: PUBLER_API_KEY
         sync: false
       - key: PUBLER_ID
         sync: false
-      - key: INSTAGRAM_ACCOUNT_ID
+      - key: AWIN_API_TOKEN
         sync: false
-      - key: FACEBOOK_ACCOUNT_ID
+      - key: AWIN_PUBLISHER_ID
+        sync: false
+      - key: RAKUTEN_SCOPE_ID
+        sync: false
+      - key: RAKUTEN_SECURITY_TOKEN
+        sync: false
+      - key: RAKUTEN_WEBSERVICES_TOKEN
         sync: false
       - key: TWITTER_ACCOUNT_ID
         sync: false
+      - key: FACEBOOK_ACCOUNT_ID
+        sync: false
+      - key: INSTAGRAM_ACCOUNT_ID
+        sync: false
       - key: TIKTOK_ACCOUNT_ID
-        sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
-        sync: false
-      - key: ALERT_EMAIL_TO
-        value: amsonmultiglobal@gmail.com
         sync: false
       - key: DEFAULT_IMAGE_URL
         value: https://i.imgur.com/fitness1.jpg
-      - key: POST_INTERVAL_HOURS
-        value: "4"
-      - key: APPLY_INTERVAL_HOURS
-        value: "24"
-      - key: APPROVAL_POLL_HOURS
-        value: "2"
-      - key: TIMEZONE_PRIMARY
-        value: "Africa/Lagos"
-      - key: TIMEZONE_SECONDARY
-        value: "America/New_York"
+      - key: MANUAL_RUN_TOKEN
+        generateValue: true
