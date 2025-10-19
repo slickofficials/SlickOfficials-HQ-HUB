@@ -3,17 +3,91 @@
 <head>
     <title>SlickOfficials Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f9fafb;
+            color: #222;
+        }
+        h1, h2 {
+            color: #111;
+        }
+        .uptime-box {
+            background: #fff;
+            border-radius: 10px;
+            padding: 15px 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .online {
+            color: #fff;
+            background: #22c55e;
+        }
+        .offline {
+            color: #fff;
+            background: #ef4444;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            padding: 6px 0;
+            border-bottom: 1px solid #ddd;
+        }
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            color: #2563eb;
+        }
+    </style>
 </head>
 <body>
     <h1>SlickOfficials Dashboard</h1>
+
+    <div class="uptime-box">
+        <h2>App Uptime Monitor</h2>
+        <p>Status: <span id="appStatus" class="status">Checking...</span></p>
+        <p>Last checked: <span id="lastChecked">-</span></p>
+    </div>
+
     <h2>Recent Posts (Top 10)</h2>
     <ul>
         {% for post in posts %}
         <li>{{ post.post_text }} (Platforms: {{ post.platform }})</li>
         {% endfor %}
     </ul>
+
     <h2>Config</h2>
     <pre>{{ config | tojson }}</pre>
+
     <a href="/">Back to Home</a>
+
+    <script>
+        async function checkHealth() {
+            try {
+                const res = await fetch("/health");
+                const data = await res.json();
+                document.getElementById("appStatus").textContent = "Online";
+                document.getElementById("appStatus").className = "status online";
+                document.getElementById("lastChecked").textContent = new Date().toLocaleString();
+            } catch (err) {
+                document.getElementById("appStatus").textContent = "Offline";
+                document.getElementById("appStatus").className = "status offline";
+                document.getElementById("lastChecked").textContent = new Date().toLocaleString();
+            }
+        }
+
+        // Initial check + refresh every 30 seconds
+        checkHealth();
+        setInterval(checkHealth, 30000);
+    </script>
 </body>
 </html>
