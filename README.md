@@ -1,16 +1,21 @@
 # SlickOfficials HQ Hub 🚀
 
-Your automated affiliate-marketing & content-posting control center.
+### Overview
+An automated AI-powered affiliate + social media autoposter built for Awin & Rakuten with Publer integration.
 
-## 🌍 What It Does
-- Pulls **Awin** and **Rakuten** affiliate offers automatically.
-- Creates AI-optimized captions for each offer.
-- Posts across **Instagram, Facebook, Twitter/X, and TikTok** every 4 hours via Publer.
-- Displays analytics and account status in a password-protected dashboard.
+### Features
+- Auto-fetches Awin & Rakuten deals
+- Auto-generates captions via OpenAI
+- Auto-posts every 4 hours to Facebook, Instagram, X, TikTok
+- Secure dashboard with login
 
-## 🛠️ Setup Instructions
+### Deployment
+1. Push to GitHub  
+2. Connect repo to Render  
+3. Add environment variables:
+   - PUBLER_API_KEY
+   - OPENAI_API_KEY
+4. Deploy!
 
-1. **Clone this repo**
-   ```bash
-   git clone https://github.com/<your-username>/SlickOfficials-HQ-HUB.git
-   cd SlickOfficials-HQ-HUB
+Access your hub at  
+👉 **https://slickofficials-hq-hub.onrender.com**
