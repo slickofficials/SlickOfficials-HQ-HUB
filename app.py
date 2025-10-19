@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import yaml
 import requests
-import datetime
 
 # Initialize Flask
 app = Flask(__name__)
@@ -32,10 +31,18 @@ def dashboard():
     try:
         posts_df = pd.read_csv("data/posts.csv")
         templates_df = pd.read_csv("data/templates.csv")
+
+        # Convert any datetime/timedelta to string for JSON safety
+        posts_df = posts_df.applymap(lambda x: str(x) if isinstance(x, (pd.Timestamp, pd.Timedelta)) else x)
+        templates_df = templates_df.applymap(lambda x: str(x) if isinstance(x, (pd.Timestamp, pd.Timedelta)) else x)
+
+        config = load_config()
+
         return render_template(
             "dashboard.html",
             posts=posts_df.to_dict(orient="records"),
-            templates=templates_df.to_dict(orient="records")
+            templates=templates_df.to_dict(orient="records"),
+            config=config
         )
     except Exception as e:
         return f"Error loading dashboard: {e}", 500
@@ -108,28 +115,16 @@ def test_post():
             "response": res.text
         }), res.status_code
 
-
 # ---------------------------------------------------------
-# Health Check + Uptime Tracker
+# Health Check (for Render)
 # ---------------------------------------------------------
-uptime_history = []
-
-@app.route('/health')
+@app.route("/health")
 def health():
-    """Tracks app health and uptime history."""
-    now = datetime.datetime.utcnow().isoformat() + "Z"
-    uptime_history.append(now)
-    if len(uptime_history) > 10:
-        uptime_history.pop(0)
-    return jsonify({
-        "status": "ok",
-        "checked_at": now,
-        "uptime_history": uptime_history
-    }), 200
-
+    return jsonify({"status": "ok"}), 200
 
 # ---------------------------------------------------------
 # Run the app
 # ---------------------------------------------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
