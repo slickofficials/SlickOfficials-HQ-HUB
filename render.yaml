@@ -1,23 +1,23 @@
 envVarGroups:
   - name: slickofficials-auto-hq
     envVars:
-      # 🔐 API KEYS & ACCOUNTS
+      # 🔐 Publer API credentials
       - key: PUBLER_API_KEY
         value: your_publer_api_key_here
       - key: PUBLER_ACCOUNT_ID
         value: your_publer_account_id_here
 
+      # 💰 Affiliate network keys
       - key: AWIN_API_KEY
         value: your_awin_api_key_here
       - key: AWIN_ADVERTISER_ID
         value: your_awin_advertiser_id_here
-
       - key: RAKUTEN_API_KEY
         value: your_rakuten_api_key_here
       - key: RAKUTEN_SITE_ID
         value: your_rakuten_site_id_here
 
-      # ⚙️ APP CONFIGURATION
+      # ⚙️ App setup
       - key: FLASK_ENV
         value: production
       - key: PORT
@@ -25,22 +25,32 @@ envVarGroups:
       - key: DEBUG
         value: false
 
-      # 🌍 TIMEZONES & SCHEDULER
+      # 🌍 Timezones
       - key: TIMEZONE_PRIMARY
         value: Africa/Lagos
       - key: TIMEZONE_SECONDARY
         value: America/New_York
 
-      # 🧠 POSTING BEHAVIOR
+      # 🧠 AI Caption + Video Enhancer
+      - key: OPENAI_API_KEY
+        value: your_openai_api_key_here
+      - key: UNSPLASH_ACCESS_KEY
+        value: your_unsplash_access_key_here   # optional, for product images/videos
+
+      # 📣 Posting preferences
       - key: POSTS_PER_DAY
-        value: 2
+        value: 3
       - key: RANDOMIZE_POSTS
         value: true
       - key: DEFAULT_POST_TEXT
-        value: "🚀 New deals dropping daily via SlickOfficials Auto HQ!"
+        value: "🔥 Hot affiliate deal — check it out before it’s gone!"
 
-      # 📊 FILE PATHS
+      # 📊 Data paths
       - key: POSTS_FILE
         value: data/posts.csv
       - key: TEMPLATES_FILE
         value: data/templates.csv
+
+      # ✅ Filtering
+      - key: ALLOWED_DOMAINS
+        value: "awin1.com,rakuten.com"
