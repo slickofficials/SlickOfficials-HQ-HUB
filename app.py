@@ -1,101 +1,114 @@
+from flask import Flask, render_template, jsonify, request
 import os
-from flask import Flask, render_template, jsonify
-from apscheduler.schedulers.background import BackgroundScheduler
 import pandas as pd
-from dotenv import load_dotenv
-import logging
+import yaml
+import requests
 
-# =========================
-# Load environment variables
-# =========================
-load_dotenv()
-
-AWIN_API_KEY = os.getenv("AWIN_API_KEY")
-RAKUTEN_API_KEY = os.getenv("RAKUTEN_API_KEY")
-PUBLISHER_ID = os.getenv("PUBLER_ACCOUNT_ID")
-PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
-
-# =========================
-# Flask Setup
-# =========================
+# Initialize Flask
 app = Flask(__name__)
 
-# =========================
-# Logging Config
-# =========================
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# ---------------------------------------------------------
+# Load configuration
+# ---------------------------------------------------------
+def load_config():
+    try:
+        with open("config.yaml", "r") as file:
+            config = yaml.safe_load(file)
+        return config
+    except Exception as e:
+        print(f"Error loading config.yaml: {e}")
+        return {}
 
-# =========================
-# ROUTES
-# =========================
-
-@app.route('/')
+# ---------------------------------------------------------
+# Routes
+# ---------------------------------------------------------
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
 
-
-@app.route('/dashboard')
+@app.route("/dashboard")
 def dashboard():
-    import os
-    import pandas as pd
-
-    posts_path = os.path.join(os.getcwd(), 'data', 'posts.csv')
-    templates_path = os.path.join(os.getcwd(), 'data', 'templates.csv')
-
-    posts, templates = [], []
-
     try:
-        if os.path.exists(posts_path) and os.path.getsize(posts_path) > 0:
-            posts = pd.read_csv(posts_path).to_dict(orient='records')
-        else:
-            posts = [{"title": "No posts found", "content": "Upload your first post!"}]
+        posts_df = pd.read_csv("data/posts.csv")
+        templates_df = pd.read_csv("data/templates.csv")
+        return render_template(
+            "dashboard.html",
+            posts=posts_df.to_dict(orient="records"),
+            templates=templates_df.to_dict(orient="records")
+        )
     except Exception as e:
-        logger.error(f"Error loading posts.csv: {e}")
-        posts = [{"title": "Error loading posts", "content": str(e)}]
+        return f"Error loading dashboard: {e}", 500
 
-    try:
-        if os.path.exists(templates_path) and os.path.getsize(templates_path) > 0:
-            templates = pd.read_csv(templates_path).to_dict(orient='records')
-        else:
-            templates = [{"name": "Default Template", "text": "Start adding templates."}]
-    except Exception as e:
-        logger.error(f"Error loading templates.csv: {e}")
-        templates = [{"name": "Error loading templates", "text": str(e)}]
+# ---------------------------------------------------------
+# Publer API: Test connection
+# ---------------------------------------------------------
+@app.route("/test_publer", methods=["GET"])
+def test_publer():
+    api_key = os.getenv("PUBLER_API_KEY")
+    account_id = os.getenv("PUBLER_ACCOUNT_ID")
 
-    return render_template('dashboard.html', posts=posts, templates=templates)
+    if not api_key:
+        return jsonify({"status": "error", "message": "PUBLER_API_KEY not found in environment"}), 400
 
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
 
-@app.route('/health')
-def health_check():
-    """Simple health endpoint for Render"""
-    return jsonify({"status": "ok"})
+    url = "https://api.publer.io/v1/accounts"
+    res = requests.get(url, headers=headers)
 
+    if res.status_code == 200:
+        return jsonify({
+            "status": "success",
+            "accounts": res.json(),
+            "current_account_id": account_id
+        }), 200
+    else:
+        return jsonify({
+            "status": "error",
+            "response": res.text
+        }), res.status_code
 
-# =========================
-# JOB: Auto Post Scheduler
-# =========================
-def auto_post():
-    logger.info("Auto-post job started 🚀")
-    try:
-        from poster.publer_poster import publish_post
-        publish_post()
-        logger.info("Auto-post job completed ✅")
-    except Exception as e:
-        logger.error(f"Auto-post failed: {e}")
+# ---------------------------------------------------------
+# Publer API: Test post
+# ---------------------------------------------------------
+@app.route("/test_post", methods=["POST"])
+def test_post():
+    api_key = os.getenv("PUBLER_API_KEY")
+    account_id = os.getenv("PUBLER_ACCOUNT_ID")
 
+    if not api_key or not account_id:
+        return jsonify({"status": "error", "message": "Missing PUBLER_API_KEY or PUBLER_ACCOUNT_ID"}), 400
 
-# =========================
-# Scheduler Setup
-# =========================
-scheduler = BackgroundScheduler()
-scheduler.add_job(auto_post, 'interval', hours=6)
-scheduler.start()
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+    }
 
+    payload = {
+        "accounts": [account_id],
+        "content": {
+            "text": "🚀 Test post from SlickOfficials Auto HQ — connected via Publer API!"
+        }
+    }
 
-# =========================
-# MAIN
-# =========================
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    url = "https://api.publer.io/v1/posts"
+    res = requests.post(url, headers=headers, json=payload)
+
+    if res.status_code == 201:
+        return jsonify({
+            "status": "success",
+            "post": res.json()
+        }), 201
+    else:
+        return jsonify({
+            "status": "error",
+            "response": res.text
+        }), res.status_code
+
+# ---------------------------------------------------------
+# Run the app
+# ---------------------------------------------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
