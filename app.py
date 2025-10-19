@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import yaml
 import requests
+import datetime
 
 # Initialize Flask
 app = Flask(__name__)
@@ -106,6 +107,26 @@ def test_post():
             "status": "error",
             "response": res.text
         }), res.status_code
+
+
+# ---------------------------------------------------------
+# Health Check + Uptime Tracker
+# ---------------------------------------------------------
+uptime_history = []
+
+@app.route('/health')
+def health():
+    """Tracks app health and uptime history."""
+    now = datetime.datetime.utcnow().isoformat() + "Z"
+    uptime_history.append(now)
+    if len(uptime_history) > 10:
+        uptime_history.pop(0)
+    return jsonify({
+        "status": "ok",
+        "checked_at": now,
+        "uptime_history": uptime_history
+    }), 200
+
 
 # ---------------------------------------------------------
 # Run the app
