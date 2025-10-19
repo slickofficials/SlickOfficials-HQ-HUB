@@ -1,99 +1,194 @@
-# app.py
 from flask import Flask, render_template, jsonify, request
 import os
 import pandas as pd
-from datetime import datetime
+import yaml
+import requests
+import threading
+import time
 import random
-from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
 import pytz
-
-# affiliate polling + poster modules (keep these in affiliates/ and poster/)
-from affiliates.awin import poll_awin_approvals
-from affiliates.rakuten import poll_rakuten_approvals
-from poster.publer_poster import post_next, append_new_posts_if_any, ensure_posted_log
 
 app = Flask(__name__)
 
-# Config / env
-POSTS_FILE = os.getenv("POSTS_FILE", "data/posts.csv")
-POSTED_LOG = os.getenv("POSTED_LOG", "data/posted_log.csv")
-TZ_PRIMARY = os.getenv("TIMEZONE_PRIMARY", "Africa/Lagos")
-TZ_SECONDARY = os.getenv("TIMEZONE_SECONDARY", "America/New_York")
-POST_INTERVAL_HOURS = int(os.getenv("POST_INTERVAL_HOURS", 4))  # you asked for every 4 hours
-
-def safe_load_csv(path, default_columns=None):
-    if not os.path.exists(os.path.dirname(path)) and os.path.dirname(path) != "":
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-    if not os.path.exists(path):
-        if default_columns:
-            pd.DataFrame(columns=default_columns).to_csv(path, index=False)
-        else:
-            pd.DataFrame().to_csv(path, index=False)
+# ---------------------------------------------------------
+# Load configuration
+# ---------------------------------------------------------
+def load_config():
     try:
-        return pd.read_csv(path)
+        with open("config.yaml", "r") as file:
+            return yaml.safe_load(file)
+    except Exception:
+        return {}
+
+# ---------------------------------------------------------
+# Utility: Smart AI-style caption generator
+# ---------------------------------------------------------
+def generate_caption(base_text, category="General"):
+    """
+    Simple AI-like remix: adds emojis, hashtags & punchlines dynamically.
+    """
+    taglines = [
+        "🔥 Don't sleep on this deal!",
+        "💡 Smart picks only!",
+        "💥 Level up your lifestyle.",
+        "🚀 Trending right now!",
+        "💰 Your wallet will thank you!"
+    ]
+    hashtags = [
+        "#TrendingNow", "#SmartDeals", "#GlobalFinds", "#AffiliateWin", "#ShopSmart",
+        "#LifestyleUpgrade", "#BossMove", "#SlickOfficials"
+    ]
+    caption = f"{base_text}\n\n{random.choice(taglines)} {random.choice(hashtags)}"
+    return caption
+
+# ---------------------------------------------------------
+# Affiliate Feed: AWIN + Rakuten
+# ---------------------------------------------------------
+def fetch_affiliate_links():
+    posts = []
+
+    # AWIN
+    awin_token = os.getenv("AWIN_API_TOKEN")
+    awin_publisher = os.getenv("AWIN_PUBLISHER_ID")
+    if awin_token and awin_publisher:
+        print("Fetching Awin offers...")
+        awin_url = f"https://api.awin.com/publishers/{awin_publisher}/programmes?accessToken={awin_token}"
+        try:
+            res = requests.get(awin_url)
+            if res.status_code == 200:
+                for item in res.json()[:3]:  # sample top 3
+                    posts.append({
+                        "post_text": f"🌟 {item.get('name', 'Awin Offer')} — grab it now!",
+                        "link": item.get("clickThroughUrl", ""),
+                        "image_url": os.getenv("DEFAULT_IMAGE_URL", ""),
+                        "platform": "instagram,facebook,twitter,tiktok"
+                    })
+        except Exception as e:
+            print(f"Awin fetch failed: {e}")
+
+    # RAKUTEN
+    rakuten_token = os.getenv("RAKUTEN_SECURITY_TOKEN")
+    if rakuten_token:
+        print("Fetching Rakuten offers...")
+        try:
+            rakuten_url = "https://api.rakutenmarketing.com/affiliate/links"
+            headers = {"Authorization": f"Bearer {rakuten_token}"}
+            res = requests.get(rakuten_url, headers=headers)
+            if res.status_code == 200 and isinstance(res.json(), list):
+                for link in res.json()[:3]:
+                    posts.append({
+                        "post_text": f"🛍️ {link.get('mid', 'Rakuten Deal')} — special offer inside!",
+                        "link": link.get("clickUrl", ""),
+                        "image_url": os.getenv("DEFAULT_IMAGE_URL", ""),
+                        "platform": "instagram,facebook,twitter,tiktok"
+                    })
+        except Exception as e:
+            print(f"Rakuten fetch failed: {e}")
+
+    return posts
+
+# ---------------------------------------------------------
+# Publer Poster
+# ---------------------------------------------------------
+def post_to_publer(post):
+    api_key = os.getenv("PUBLER_API_KEY")
+    account_id = os.getenv("PUBLER_ID")
+
+    if not api_key or not account_id:
+        print("Missing Publer credentials.")
+        return
+
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+    caption = generate_caption(post["post_text"])
+    payload = {
+        "accounts": [account_id],
+        "content": {
+            "text": f"{caption}\n{post['link']}",
+            "media": [{"url": post["image_url"]}]
+        }
+    }
+
+    try:
+        res = requests.post("https://api.publer.io/v1/posts", headers=headers, json=payload)
+        print(f"📢 Posted: {post['post_text']} — Status {res.status_code}")
+        if res.status_code not in [200, 201]:
+            print(res.text)
     except Exception as e:
-        print(f"[App] Error reading {path}: {e}")
-        return pd.DataFrame()
+        print(f"Publer post failed: {e}")
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+# ---------------------------------------------------------
+# Posting Loop
+# ---------------------------------------------------------
+def run_auto_post():
+    try:
+        df = pd.read_csv("data/posts.csv")
+        posted_log = set()
 
-@app.route("/dashboard")
-def dashboard():
-    df = safe_load_csv(POSTS_FILE, default_columns=["post_text","platform","link","image_url"])
-    # show last 10 posted entries too
-    ensure_posted_log()
-    posted_df = safe_load_csv(POSTED_LOG, default_columns=["link","posted_at"])
-    posted_recent = posted_df.tail(10).to_dict(orient="records") if not posted_df.empty else []
-    return render_template("dashboard.html", posts=df.to_dict(orient="records"), posted_recent=posted_recent)
+        for _, row in df.iterrows():
+            link = row["link"]
+            if link in posted_log:
+                continue
+            post_to_publer(row)
+            posted_log.add(link)
+            time.sleep(15)
+
+        print("✅ Cycle complete. Refreshing new offers...")
+        new_posts = fetch_affiliate_links()
+        if new_posts:
+            new_df = pd.DataFrame(new_posts)
+            new_df.to_csv("data/posts.csv", index=False)
+            print("🆕 Posts refreshed with latest affiliate links.")
+    except Exception as e:
+        print(f"❌ Error in auto post: {e}")
+
+# ---------------------------------------------------------
+# Background Scheduler (every 4 hours)
+# ---------------------------------------------------------
+def scheduler():
+    while True:
+        now_lagos = datetime.now(pytz.timezone("Africa/Lagos")).strftime("%Y-%m-%d %H:%M:%S")
+        now_usa = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d %H:%M:%S")
+        print(f"🕓 Auto post triggered — Lagos: {now_lagos} | USA: {now_usa}")
+        run_auto_post()
+        print("⏳ Waiting 4 hours before next run...")
+        time.sleep(4 * 60 * 60)
+
+# ---------------------------------------------------------
+# Manual Control Routes
+# ---------------------------------------------------------
+@app.route("/manual_post", methods=["POST"])
+def manual_post():
+    threading.Thread(target=run_auto_post).start()
+    return jsonify({"message": "Manual post triggered successfully!"})
 
 @app.route("/manual_reload", methods=["POST"])
 def manual_reload():
-    """
-    Manually poll Awin & Rakuten and append new posts immediately.
-    """
-    awin = poll_awin_approvals()
-    rakuten = poll_rakuten_approvals()
-    added = append_new_posts_if_any(awin + rakuten)
-    return jsonify({"status": "ok", "added": added}), 200
+    posts = fetch_affiliate_links()
+    if posts:
+        df = pd.DataFrame(posts)
+        df.to_csv("data/posts.csv", index=False)
+        return jsonify({"message": "Affiliate links reloaded successfully!"})
+    return jsonify({"message": "No new offers found."})
 
-@app.route("/manual_post", methods=["POST"])
-def manual_post():
-    """
-    Manually trigger a single post (posts next pending item).
-    """
-    ok = post_next()
-    return jsonify({"status": "posted" if ok else "failed"}), (200 if ok else 500)
+@app.route("/status", methods=["GET"])
+def system_status():
+    now_lagos = datetime.now(pytz.timezone("Africa/Lagos")).strftime("%Y-%m-%d %H:%M:%S")
+    now_usa = datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d %H:%M:%S")
+    return jsonify({
+        "status": "running",
+        "next_run": "Every 4 hours",
+        "time_africa": now_lagos,
+        "time_usa": now_usa
+    })
 
-@app.route("/health")
-def health():
-    return jsonify({"status": "ok", "time": datetime.utcnow().isoformat() + "Z"}), 200
+# ---------------------------------------------------------
+# Scheduler Thread Start
+# ---------------------------------------------------------
+threading.Thread(target=scheduler, daemon=True).start()
 
-# Scheduler jobs: poll affiliates every 4 hours, attempt to post every 4 hours (staggered)
-def poll_and_append_job():
-    print("[Scheduler] Polling affiliates for approvals...")
-    awin_posts = poll_awin_approvals()
-    rakuten_posts = poll_rakuten_approvals()
-    added = append_new_posts_if_any(awin_posts + rakuten_posts)
-    print(f"[Scheduler] Added {added} new posts from affiliates.")
-
-def posting_job():
-    print("[Scheduler] Attempting to post next pending item...")
-    ok = post_next()
-    print("[Scheduler] Post result:", ok)
-
-def start_scheduler():
-    tz_primary = pytz.timezone(TZ_PRIMARY)
-    scheduler = BackgroundScheduler(timezone=tz_primary)
-    # Poll affiliates every 4 hours
-    scheduler.add_job(poll_and_append_job, 'interval', hours=4, next_run_time=datetime.utcnow())
-    # Try to post every 4 hours (this will attempt to post if there are pending items)
-    scheduler.add_job(posting_job, 'interval', hours=4, next_run_time=datetime.utcnow())
-    scheduler.start()
-    print("[Scheduler] Started (every 4 hours)")
-
+# ---------------------------------------------------------
+# Run App
+# ---------------------------------------------------------
 if __name__ == "__main__":
-    start_scheduler()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
