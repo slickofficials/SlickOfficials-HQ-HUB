@@ -1,52 +1,70 @@
-import requests
+# affiliates/awin.py
 import os
-from datetime import datetime, timedelta
+import requests
 import random
+from datetime import datetime, timedelta
+
+AWIN_API_TOKEN = os.getenv("AWIN_API_TOKEN")
+AWIN_PUBLISHER_ID = os.getenv("AWIN_PUBLISHER_ID")
 
 def generate_awin_link(programme_id, destination_url):
-    endpoint = f"https://api.awin.com/publishers/{os.getenv('AWIN_PUBLISHER_ID')}/cread/links"
-    headers = {"Authorization": f"Bearer {os.getenv('AWIN_API_TOKEN')}"}
-    payload = {
-        "campaign": "globalbot",
-        "destination": destination_url,
-        "programmeId": programme_id
-    }
+    """
+    Create an Awin deep link (cread). Returns the tracking URL or None.
+    """
     try:
-        response = requests.post(endpoint, json=payload, headers=headers, timeout=10)
-        if response.status_code == 200:
-            return response.json().get("link")
-        print(f"Awin link error: {response.status_code} - {response.text}")
+        endpoint = f"https://api.awin.com/publishers/{AWIN_PUBLISHER_ID}/cread/links"
+        headers = {"Authorization": f"Bearer {AWIN_API_TOKEN}"}
+        payload = {
+            "campaign": "slickofficials",
+            "destination": destination_url,
+            "programmeId": programme_id
+        }
+        r = requests.post(endpoint, json=payload, headers=headers, timeout=15)
+        if r.status_code in (200, 201):
+            data = r.json()
+            return data.get("link") or data.get("trackingUrl") or data.get("tracking_link")
+        else:
+            print(f"[Awin] generate_awin_link failed {r.status_code}: {r.text}")
     except Exception as e:
-        print(f"Awin generate link exception: {e}")
+        print(f"[Awin] generate_awin_link exception: {e}")
     return None
 
-def poll_awin_approvals(templates):
-    endpoint = f"https://api.awin.com/publishers/{os.getenv('AWIN_PUBLISHER_ID')}/programmes"
-    headers = {"Authorization": f"Bearer {os.getenv('AWIN_API_TOKEN')}"}
-    params = {
-        "relationship": "joined",
-        "startDate": (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d"),
-        "endDate": datetime.now().strftime("%Y-%m-%d")
-    }
-    new_posts = []
+def poll_awin_approvals():
+    """
+    Poll Awin for recently joined programmes or approvals.
+    Returns list of dicts: {"name","link","category","source":"awin"}
+    """
+    results = []
+    if not AWIN_API_TOKEN or not AWIN_PUBLISHER_ID:
+        print("[Awin] Missing AWIN_API_TOKEN or AWIN_PUBLISHER_ID")
+        return results
+
     try:
-        response = requests.get(endpoint, headers=headers, params=params, timeout=10)
-        if response.status_code == 200:
-            new_approvals = response.json()
-            for approval in new_approvals:
-                link = generate_awin_link(approval.get("programmeId"), approval.get("clickThroughUrl"))
-                if link:
-                    matches = [t for t in templates if t.get("product_type") == approval.get("category", "wellness")]
-                    template = random.choice(matches) if matches else random.choice(templates) if templates else {"template":"Check [Product] [Link]"}
-                    post_text = template.get("template", "").replace("[Product]", approval.get("programmeName","Product")).replace("[Link]", link)
-                    new_post = {
-                        "post_text": post_text,
-                        "platform": "instagram,facebook,twitter,tiktok",
-                        "link": link,
-                        "image_url": f"https://i.imgur.com/{approval.get('category','wellness')}{random.randint(1,10)}.jpg"
-                    }
-                    new_posts.append(new_post)
-                    print(f"Awin new approval: {approval.get('programmeName')} | Link: {link}")
+        endpoint = f"https://api.awin.com/publishers/{AWIN_PUBLISHER_ID}/programmes"
+        headers = {"Authorization": f"Bearer {AWIN_API_TOKEN}"}
+        # fetch programmes joined recently (last 7 days)
+        params = {"relationship": "joined", "startDate": (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%d")}
+        r = requests.get(endpoint, headers=headers, params=params, timeout=20)
+        if r.status_code == 200:
+            data = r.json()
+            # data might be list or object containing programmes
+            programmes = data if isinstance(data, list) else data.get("programmes", data)
+            for prog in programmes:
+                programmeId = prog.get("programmeId") or prog.get("id") or prog.get("programmeId")
+                name = prog.get("name") or prog.get("programmeName") or prog.get("name")
+                # try to find clickThroughUrl or merchant site url
+                dest = prog.get("clickThroughUrl") or prog.get("website") or prog.get("siteUrl") or prog.get("domain")
+                link = generate_awin_link(programmeId, dest) if programmeId and dest else None
+                results.append({
+                    "post_text": f"Check out {name} — great deal! [Link]",
+                    "link": link or dest,
+                    "image_url": f"https://i.imgur.com/affiliate{random.randint(1,10)}.jpg",
+                    "category": prog.get("category", "affiliate"),
+                    "source": "awin",
+                    "name": name
+                })
+        else:
+            print(f"[Awin] poll failed {r.status_code}: {r.text}")
     except Exception as e:
-        print(f"Awin poll exception: {e}")
-    return new_posts
+        print(f"[Awin] poll exception: {e}")
+    return results
