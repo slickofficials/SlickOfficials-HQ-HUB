@@ -18,4 +18,4 @@ An automated AI-powered affiliate + social media autoposter built for Awin & Rak
 4. Deploy!
 
 Access your hub at  
-👉 **https://slickofficials-hq-hub.onrender.com**
+👉 **https://user-hub.onrender.com**
