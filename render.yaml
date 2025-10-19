@@ -6,21 +6,19 @@ services:
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: PORT
-        value: 5000
-      # All secrets below should be added in Render dashboard, not here:
-      # ADMIN_USERNAME
-      # ADMIN_PASSWORD
-      # PUBLER_API_KEY
-      # AWIN_API_TOKEN
-      # AWIN_PUBLISHER_ID
-      # RAKUTEN_SCOPE_ID
-      # RAKUTEN_SECURITY_TOKEN
-      # RAKUTEN_WEBSERVICES_TOKEN
-      # FACEBOOK_ACCOUNT_ID
-      # INSTAGRAM_ACCOUNT_ID
-      # TWITTER_ACCOUNT_ID
-      # TIKTOK_ACCOUNT_ID
-      # DEFAULT_IMAGE_URL
+      - key: APP_USERNAME
+        value: "Slickofficials HQ"
+      - key: APP_PASSWORD
+        value: "Asset@22"
+      - key: AWIN_PUBLISHER_ID
+        value: "2615532"
+      - key: RAKUTEN_SCOPE_ID
+        value: "4599968"
+      - key: PUBLER_USER_ID
+        value: "68f322a3cacec2f6e1ad6e1d"
+      - key: PUBLER_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: APP_SECRET_KEY
+        generateValue: true
