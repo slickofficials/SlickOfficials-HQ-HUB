@@ -1,56 +1,50 @@
-envVarGroups:
-  - name: slickofficials-auto-hq
+services:
+  - type: web
+    name: slickofficials-web
+    env: python
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      # 🔐 Publer API credentials
-      - key: PUBLER_API_KEY
-        value: your_publer_api_key_here
-      - key: PUBLER_ACCOUNT_ID
-        value: your_publer_account_id_here
-
-      # 💰 Affiliate network keys
-      - key: AWIN_API_KEY
-        value: your_awin_api_key_here
-      - key: AWIN_ADVERTISER_ID
-        value: your_awin_advertiser_id_here
-      - key: RAKUTEN_API_KEY
-        value: your_rakuten_api_key_here
-      - key: RAKUTEN_SITE_ID
-        value: your_rakuten_site_id_here
-
-      # ⚙️ App setup
-      - key: FLASK_ENV
-        value: production
       - key: PORT
         value: 5000
-      - key: DEBUG
-        value: false
+      - key: PUBLER_API_KEY
+        sync: false
+      - key: PUBLER_ACCOUNT_ID
+        sync: false
+      - key: AWIN_API_TOKEN
+        sync: false
+      - key: AWIN_PUBLISHER_ID
+        sync: false
+      - key: RAKUTEN_WEBSERVICES_TOKEN
+        sync: false
+      - key: RAKUTEN_SECURITY_TOKEN
+        sync: false
+      - key: RAKUTEN_SCOPE_ID
+        sync: false
 
-      # 🌍 Timezones
-      - key: TIMEZONE_PRIMARY
-        value: Africa/Lagos
-      - key: TIMEZONE_SECONDARY
-        value: America/New_York
-
-      # 🧠 AI Caption + Video Enhancer
-      - key: OPENAI_API_KEY
-        value: your_openai_api_key_here
-      - key: UNSPLASH_ACCESS_KEY
-        value: your_unsplash_access_key_here   # optional, for product images/videos
-
-      # 📣 Posting preferences
-      - key: POSTS_PER_DAY
-        value: 3
-      - key: RANDOMIZE_POSTS
-        value: true
-      - key: DEFAULT_POST_TEXT
-        value: "🔥 Hot affiliate deal — check it out before it’s gone!"
-
-      # 📊 Data paths
-      - key: POSTS_FILE
-        value: data/posts.csv
-      - key: TEMPLATES_FILE
-        value: data/templates.csv
-
-      # ✅ Filtering
-      - key: ALLOWED_DOMAINS
-        value: "awin1.com,rakuten.com"
+  - type: worker
+    name: slickofficials-scheduler
+    env: python
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: python auto_scheduler.py
+    envVars:
+      - key: PUBLER_API_KEY
+        sync: false
+      - key: PUBLER_ACCOUNT_ID
+        sync: false
+      - key: AWIN_API_TOKEN
+        sync: false
+      - key: AWIN_PUBLISHER_ID
+        sync: false
+      - key: RAKUTEN_WEBSERVICES_TOKEN
+        sync: false
+      - key: RAKUTEN_SECURITY_TOKEN
+        sync: false
+      - key: RAKUTEN_SCOPE_ID
+        sync: false
