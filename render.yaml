@@ -1,18 +1,17 @@
 services:
   - type: web
-    name: slickofficials-hq-hub
+    name: slick-auto-hq
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
     plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
       - key: PUBLER_API_KEY
         sync: false
       - key: PUBLER_ACCOUNT_ID
         sync: false
-      - key: AWIN_API_KEY
-        sync: false
-      - key: RAKUTEN_API_KEY
-        sync: false
-      - key: PORT
-        value: 5000
+    healthCheckPath: /health
