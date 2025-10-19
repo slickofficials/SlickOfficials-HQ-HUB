@@ -1,13 +1,24 @@
+# render.yaml
 services:
   - type: web
-    name: slickofficials-hq-hub
+    name: slickofficials-hq
     env: python
-    plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
-    autoDeploy: true
+    startCommand: gunicorn app:app --timeout 180 --workers 2 --threads 2 --bind 0.0.0.0:$PORT
+    plan: free
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: PORT
-        value: 5000
+      - key: ADMIN_USERNAME
+        value: Slickofficials HQ
+      - key: ADMIN_PASSWORD
+        value:YOUR_PASSWORD
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEFAULT_IMAGE_URL
+        value: https://i.imgur.com/fitness1.jpg
+      # Optional: adjust intervals (hours)
+      - key: POST_INTERVAL_HOURS
+        value: "4"
+      - key: APPROVAL_POLL_HOURS
+        value: "2"
+      - key: DISCOVER_INTERVAL_HOURS
+        value: "24"
