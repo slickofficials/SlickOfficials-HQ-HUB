@@ -1,32 +1,115 @@
 from flask import Flask, render_template, jsonify, request
-import os
-import pandas as pd
-import yaml
-import requests
-import random
-from dotenv import load_dotenv
-
-# Load environment variables
-load_dotenv()
+import os, random, requests, pandas as pd, yaml
+from datetime import datetime
+from apscheduler.schedulers.background import BackgroundScheduler
+import pytz
 
 # Initialize Flask
 app = Flask(__name__)
 
-# ---------------------------------------------------------
-# Load configuration (optional)
-# ---------------------------------------------------------
+# Load config safely
 def load_config():
     try:
         with open("config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-        return config
+            return yaml.safe_load(file)
     except Exception as e:
-        print(f"Error loading config.yaml: {e}")
+        print("Error loading config:", e)
         return {}
 
-# ---------------------------------------------------------
-# Routes
-# ---------------------------------------------------------
+# Environment setup
+PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
+PUBLER_ACCOUNT_ID = os.getenv("PUBLER_ACCOUNT_ID")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ALLOWED_DOMAINS = os.getenv("ALLOWED_DOMAINS", "awin1.com,rakuten.com").split(",")
+POSTS_FILE = os.getenv("POSTS_FILE", "data/posts.csv")
+DEFAULT_POST_TEXT = os.getenv("DEFAULT_POST_TEXT", "🔥 Hot affiliate deal — check it out before it’s gone!")
+TZ_PRIMARY = os.getenv("TIMEZONE_PRIMARY", "Africa/Lagos")
+TZ_SECONDARY = os.getenv("TIMEZONE_SECONDARY", "America/New_York")
+
+# -------- Helper: AI caption generator --------
+def generate_ai_caption(link):
+    """Generate a smart promo caption using OpenAI."""
+    if not OPENAI_API_KEY:
+        return DEFAULT_POST_TEXT
+
+    prompt = f"Write a short, catchy social media caption (with emojis) promoting this affiliate deal: {link}"
+    try:
+        res = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENAI_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "gpt-4o-mini",
+                "messages": [{"role": "user", "content": prompt}],
+                "max_tokens": 50
+            }
+        )
+        data = res.json()
+        return data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print("AI caption error:", e)
+        return DEFAULT_POST_TEXT
+
+# -------- Helper: fetch optional image from Unsplash --------
+def get_promo_image(link):
+    access_key = os.getenv("UNSPLASH_ACCESS_KEY")
+    if not access_key:
+        return None
+    try:
+        keyword = link.split("/")[2].replace("www.", "")
+        res = requests.get(f"https://api.unsplash.com/photos/random?query={keyword}&client_id={access_key}")
+        if res.status_code == 200:
+            return res.json()["urls"]["regular"]
+    except Exception as e:
+        print("Image fetch error:", e)
+    return None
+
+# -------- Filter affiliate links --------
+def load_affiliate_links():
+    if not os.path.exists(POSTS_FILE):
+        print(f"{POSTS_FILE} not found.")
+        return []
+
+    df = pd.read_csv(POSTS_FILE)
+    links = [url for url in df["url"].dropna() if any(domain in url for domain in ALLOWED_DOMAINS)]
+    return links
+
+# -------- Send post to Publer --------
+def post_to_publer(link):
+    caption = generate_ai_caption(link)
+    image_url = get_promo_image(link)
+
+    headers = {
+        "Authorization": f"Bearer {PUBLER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "accounts": [PUBLER_ACCOUNT_ID],
+        "content": {"text": f"{caption}\n\n{link}"}
+    }
+
+    if image_url:
+        payload["content"]["media_urls"] = [image_url]
+
+    res = requests.post("https://api.publer.io/v1/posts", headers=headers, json=payload)
+    print(f"Publer status {res.status_code}: {res.text}")
+    return res.status_code == 201
+
+# -------- Scheduler job --------
+def auto_post_job():
+    links = load_affiliate_links()
+    if not links:
+        print("⚠️ No affiliate links found.")
+        return
+
+    link = random.choice(links)
+    success = post_to_publer(link)
+    print(f"✅ Posted: {link}" if success else f"❌ Failed to post {link}")
+
+# -------- Dashboard routes --------
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -34,101 +117,17 @@ def index():
 @app.route("/dashboard")
 def dashboard():
     try:
-        posts_df = pd.read_csv("data/posts.csv")
-        config = load_config()
-        return render_template(
-            "dashboard.html",
-            posts=posts_df.to_dict(orient="records"),
-            config=config
-        )
+        posts_df = pd.read_csv(POSTS_FILE)
+        return render_template("dashboard.html", posts=posts_df.to_dict(orient="records"))
     except Exception as e:
-        return f"Error loading dashboard: {e}", 500
+        return f"Error loading dashboard: {e}"
 
-# ---------------------------------------------------------
-# Test Publer connection
-# ---------------------------------------------------------
-@app.route("/test_publer", methods=["GET"])
-def test_publer():
-    api_key = os.getenv("PUBLER_API_KEY")
-    account_id = os.getenv("PUBLER_ACCOUNT_ID")
+# -------- Scheduler setup --------
+scheduler = BackgroundScheduler()
+scheduler.add_job(auto_post_job, "interval", hours=12, timezone=TZ_PRIMARY)
+scheduler.add_job(auto_post_job, "interval", hours=12, timezone=TZ_SECONDARY)
+scheduler.start()
 
-    if not api_key:
-        return jsonify({"status": "error", "message": "PUBLER_API_KEY not found in environment"}), 400
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    url = "https://api.publer.io/v1/accounts"
-    res = requests.get(url, headers=headers)
-
-    if res.status_code == 200:
-        return jsonify({
-            "status": "success",
-            "accounts": res.json(),
-            "current_account_id": account_id
-        }), 200
-    else:
-        return jsonify({
-            "status": "error",
-            "response": res.text
-        }), res.status_code
-
-# ---------------------------------------------------------
-# Auto Post Affiliate Links to Publer
-# ---------------------------------------------------------
-@app.route("/auto_post", methods=["POST"])
-def auto_post():
-    api_key = os.getenv("PUBLER_API_KEY")
-    account_id = os.getenv("PUBLER_ACCOUNT_ID")
-
-    if not api_key or not account_id:
-        return jsonify({"status": "error", "message": "Missing PUBLER_API_KEY or PUBLER_ACCOUNT_ID"}), 400
-
-    # Load affiliate posts
-    try:
-        df = pd.read_csv("data/posts.csv")  # must have 'post_text' and 'deep_link' columns
-    except Exception as e:
-        return jsonify({"status": "error", "message": f"Error loading posts.csv: {e}"}), 500
-
-    if df.empty:
-        return jsonify({"status": "error", "message": "posts.csv is empty"}), 400
-
-    # Choose a random post
-    post = df.sample(1).iloc[0]
-    caption = f"{post['post_text']}\n\n👉 {post['deep_link']}"
-
-    # Prepare Publer payload
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-    }
-
-    payload = {
-        "accounts": [account_id],
-        "content": {
-            "text": caption
-        }
-    }
-
-    res = requests.post("https://api.publer.io/v1/posts", headers=headers, json=payload)
-
-    if res.status_code == 201:
-        return jsonify({
-            "status": "success",
-            "posted": caption,
-            "response": res.json()
-        }), 201
-    else:
-        return jsonify({
-            "status": "error",
-            "response": res.text
-        }), res.status_code
-
-# ---------------------------------------------------------
-# Run Flask with Gunicorn
-# ---------------------------------------------------------
+# Run app
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
