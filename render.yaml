@@ -2,13 +2,27 @@ services:
   - type: web
     name: slickofficials-auto-hq
     env: python
-    plan: free
+    region: frankfurt
     buildCommand: pip install -r requirements.txt
-    startCommand: python app.py
+    startCommand: gunicorn app:app
+    autoDeploy: true
+
     envVars:
+      - key: FLASK_ENV
+        value: production
       - key: PORT
-        value: 5000
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: DEFAULT_IMAGE_URL
-        value: https://i.imgur.com/fitness1.jpg
+        value: 10000
+      - key: AWIN_API_KEY
+        sync: false
+      - key: AWIN_ADVERTISER_ID
+        sync: false
+      - key: RAKUTEN_API_KEY
+        sync: false
+      - key: RAKUTEN_SITE_ID
+        sync: false
+      - key: PUBLER_API_KEY
+        sync: false
+      - key: PUBLER_ACCOUNT_ID
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
