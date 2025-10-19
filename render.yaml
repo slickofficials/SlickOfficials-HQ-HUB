@@ -1,28 +1,18 @@
 services:
   - type: web
-    name: slickofficials-auto-hq
+    name: slickofficials-hq-hub
     env: python
-    region: frankfurt
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
-    autoDeploy: true
-
+    plan: free
     envVars:
-      - key: FLASK_ENV
-        value: production
-      - key: PORT
-        value: 10000
-      - key: AWIN_API_KEY
-        sync: false
-      - key: AWIN_ADVERTISER_ID
-        sync: false
-      - key: RAKUTEN_API_KEY
-        sync: false
-      - key: RAKUTEN_SITE_ID
-        sync: false
       - key: PUBLER_API_KEY
         sync: false
       - key: PUBLER_ACCOUNT_ID
         sync: false
-      - key: SECRET_KEY
-        generateValue: true
+      - key: AWIN_API_KEY
+        sync: false
+      - key: RAKUTEN_API_KEY
+        sync: false
+      - key: PORT
+        value: 5000
