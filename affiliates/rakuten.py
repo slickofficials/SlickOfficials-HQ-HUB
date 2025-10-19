@@ -57,7 +57,7 @@ def poll_rakuten_approvals():
             advertisers = data.get("advertisers", [])
             for adv in advertisers:
                 adv_id = adv.get("advertiserId") or adv.get("id")
-                name = adv.get("advertiserName") or adv.get("name")
+                name = adv.get("advertiserName") or adv.get("name") or "Partner"
                 site = adv.get("siteUrl") or adv.get("domain")
                 link = generate_rakuten_link(adv_id, site) if adv_id and site else site
                 results.append({
