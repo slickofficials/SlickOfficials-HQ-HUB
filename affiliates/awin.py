@@ -32,7 +32,7 @@ def generate_awin_link(programme_id, destination_url):
 def poll_awin_approvals():
     """
     Poll Awin for recently joined programmes or approvals.
-    Returns list of dicts: {"name","link","category","source":"awin"}
+    Returns list of dicts: {"post_text","link","image_url","category","source","name"}
     """
     results = []
     if not AWIN_API_TOKEN or not AWIN_PUBLISHER_ID:
@@ -42,21 +42,18 @@ def poll_awin_approvals():
     try:
         endpoint = f"https://api.awin.com/publishers/{AWIN_PUBLISHER_ID}/programmes"
         headers = {"Authorization": f"Bearer {AWIN_API_TOKEN}"}
-        # fetch programmes joined recently (last 7 days)
         params = {"relationship": "joined", "startDate": (datetime.utcnow() - timedelta(days=7)).strftime("%Y-%m-%d")}
         r = requests.get(endpoint, headers=headers, params=params, timeout=20)
         if r.status_code == 200:
             data = r.json()
-            # data might be list or object containing programmes
             programmes = data if isinstance(data, list) else data.get("programmes", data)
             for prog in programmes:
-                programmeId = prog.get("programmeId") or prog.get("id") or prog.get("programmeId")
-                name = prog.get("name") or prog.get("programmeName") or prog.get("name")
-                # try to find clickThroughUrl or merchant site url
+                programmeId = prog.get("programmeId") or prog.get("id")
+                name = prog.get("programmeName") or prog.get("name") or "Partner"
                 dest = prog.get("clickThroughUrl") or prog.get("website") or prog.get("siteUrl") or prog.get("domain")
-                link = generate_awin_link(programmeId, dest) if programmeId and dest else None
+                link = generate_awin_link(programmeId, dest) if programmeId and dest else dest
                 results.append({
-                    "post_text": f"Check out {name} — great deal! [Link]",
+                    "post_text": f"Check out {name} — great deals waiting! [Link]",
                     "link": link or dest,
                     "image_url": f"https://i.imgur.com/affiliate{random.randint(1,10)}.jpg",
                     "category": prog.get("category", "affiliate"),
