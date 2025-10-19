@@ -1,87 +1,72 @@
-import requests
+# poster/publer_poster.py
 import os
-from datetime import datetime, timedelta
-import random
+import requests
 import pandas as pd
+from datetime import datetime
+import random
 
-def post_content(posts, templates):
-    if not posts:
-        print("No more posts! Generating from templates...")
-        fallback_products = [
-            {"name": "Kila Custom Insoles", "url": "https://tidd.ly/3J1KeV2", "category": "insoles"},
-            {"name": "Kapitalwise", "url": "https://tidd.ly/43ibfu7", "category": "finance"},
-            {"name": "Diamond Smile FR", "url": "https://tidd.ly/4nanmAp", "category": "dental"},
-            {"name": "Bell’s Reines", "url": "https://tidd.ly/3Jb6cEV", "category": "food"},
-            {"name": "Awin USD", "url": "https://tidd.ly/46RRifY", "category": "affiliate"},
-            {"name": "AliExpress", "url": "https://tidd.ly/3Jbg6GA", "category": "ecommerce"},
-            {"name": "Neck Hammock", "url": "https://tidd.ly/4qyhB2L", "category": "wellness"},
-            {"name": "Slimea", "url": "https://tidd.ly/3WbtvBv", "category": "weightloss"},
-            {"name": "Timeshop24 DE", "url": "https://tidd.ly/4nWuz8s", "category": "watches"},
-            {"name": "Bonne et Filou", "url": "https://tidd.ly/4hgNp7H", "category": "pet"},
-            {"name": "Wondershare", "url": "https://click.linksynergy.com/deeplink?id=iejQuC2lIug&mid=37160&murl=https%3A%2F%2Fwww.wondershare.com%2F", "category": "software"}
-        ]
-        product = random.choice(fallback_products)
-        matches = [t for t in templates if t.get("product_type") == product["category"]]
-        template = random.choice(matches) if matches else random.choice(templates) if templates else {"template":"Check [Product] [Link]"}
-        link = product["url"]
-        post_text = template.get("template","").replace("[Product]", product["name"]).replace("[Link]", link)
-        posts.append({
-            "post_text": post_text,
-            "platform": "instagram,facebook,twitter,tiktok",
-            "link": link,
-            "image_url": f"https://i.imgur.com/{product['category']}{random.randint(1, 10)}.jpg"
-        })
-        pd.DataFrame(posts).to_csv("data/posts.csv", index=False)
+PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
+PUBLER_ACCOUNT_ID = os.getenv("PUBLER_ACCOUNT_ID")
 
-    batch_size = min(10, len(posts))
-    batch_posts = posts[:batch_size]
-    posts[:] = posts[batch_size:]
+POSTS_FILE = os.getenv("POSTS_FILE", "data/posts.csv")
+POSTED_LOG = os.getenv("POSTED_LOG", "data/posted_log.csv")
 
-    endpoint = "https://app.publer.com/api/v1/posts/schedule"
+def ensure_posted_log():
+    if not os.path.exists(POSTED_LOG):
+        pd.DataFrame(columns=["link", "posted_at"]).to_csv(POSTED_LOG, index=False)
+
+def load_pending_posts():
+    if not os.path.exists(POSTS_FILE):
+        return []
+    df = pd.read_csv(POSTS_FILE)
+    ensure_posted_log()
+    posted = pd.read_csv(POSTED_LOG)["link"].tolist()
+    pending = df[~df["link"].isin(posted)] if "link" in df.columns else df
+    return pending.to_dict(orient="records")
+
+def post_to_publer(post):
+    """Let Publer generate captions/media (Business plan feature)"""
+    if not PUBLER_API_KEY or not PUBLER_ACCOUNT_ID:
+        print("[Publer] Missing credentials")
+        return False, None
+
+    caption = post.get("post_text", "").replace("[Link]", post.get("link", ""))
+    payload = {
+        "accounts": [PUBLER_ACCOUNT_ID],
+        "content": {
+            "text": caption,
+            "auto_generated_captions": True,
+            "auto_generated_media": True
+        }
+    }
     headers = {
-        "Authorization": f"Bearer {os.getenv('PUBLER_API_KEY')}",
-        "Publer-Workspace-Id": os.getenv("PUBLER_WORKSPACE_ID"),
+        "Authorization": f"Bearer {PUBLER_API_KEY}",
         "Content-Type": "application/json"
     }
-    payload = {
-        "bulk": {
-            "state": "scheduled",
-            "posts": []
-        }
-    }
-
-    for post in batch_posts:
-        text = post.get("post_text","")
-        platforms = [p.strip() for p in post.get("platform","").split(",") if p.strip()]
-        image_url = post.get("image_url") or os.getenv("DEFAULT_IMAGE_URL")
-        accounts = []
-        for p in platforms:
-            env_key = f"{p.upper()}_ACCOUNT_ID"
-            acct_id = os.getenv(env_key)
-            if acct_id:
-                accounts.append({"id": acct_id})
-        if not accounts:
-            # If no accounts configured, skip scheduling this batch
-            print("No social accounts configured in env vars (INSTAGRAM_ACCOUNT_ID, etc.). Skipping batch.")
-            return
-
-        post_data = {
-            "networks": {
-                "default": {
-                    "type": "status",
-                    "text": text
-                }
-            },
-            "accounts": accounts,
-            "scheduled_at": (datetime.utcnow() + timedelta(minutes=random.randint(1, 60))).isoformat() + "Z"
-        }
-        if image_url:
-            post_data["networks"]["default"]["media"] = [{"id": image_url, "type": "image"}]
-        payload["bulk"]["posts"].append(post_data)
-
     try:
-        response = requests.post(endpoint, json=payload, headers=headers, timeout=15)
-        print(f"Publer batch ({batch_size} posts) status: {response.status_code} | Response: {response.text if response is not None else ''}")
+        r = requests.post("https://api.publer.io/v1/posts", json=payload, headers=headers, timeout=20)
+        print(f"[Publer] status {r.status_code}: {r.text}")
+        return (r.status_code == 201), r.json() if r.text else None
     except Exception as e:
-        print(f"Publer request failed: {e}")
-    pd.DataFrame(posts).to_csv("data/posts.csv", index=False)
+        print(f"[Publer] exception: {e}")
+        return False, None
+
+def mark_posted(link):
+    ensure_posted_log()
+    df = pd.read_csv(POSTED_LOG)
+    df = pd.concat([df, pd.DataFrame([{"link": link, "posted_at": datetime.utcnow()}])], ignore_index=True)
+    df.to_csv(POSTED_LOG, index=False)
+
+def post_next():
+    pending = load_pending_posts()
+    if len(pending) == 0:
+        print("[Poster] No pending posts")
+        return False
+    post = random.choice(pending)
+    ok, resp = post_to_publer(post)
+    if ok:
+        mark_posted(post["link"])
+        print(f"[Poster] Posted and logged: {post['link']}")
+        return True
+    print("[Poster] Post failed")
+    return False
