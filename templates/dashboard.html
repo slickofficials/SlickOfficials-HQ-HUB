@@ -1,127 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>SlickOfficials Auto HQ — Dashboard</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #0f172a;
-      color: #f8fafc;
-      padding: 20px;
-    }
-    h1, h2 {
-      color: #38bdf8;
-    }
-    button {
-      background-color: #2563eb;
-      border: none;
-      color: white;
-      padding: 10px 18px;
-      margin: 5px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.2s ease-in-out;
-    }
-    button:hover {
-      background-color: #1e40af;
-    }
-    .card {
-      background-color: #1e293b;
-      padding: 20px;
-      border-radius: 12px;
-      margin-top: 15px;
-    }
-    .status {
-      font-size: 14px;
-      margin-top: 8px;
-      color: #94a3b8;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-    }
-    th, td {
-      padding: 10px;
-      border-bottom: 1px solid #334155;
-    }
-    th {
-      background-color: #1e3a8a;
-    }
-    tr:hover {
-      background-color: #1e293b;
-    }
-    .footer {
-      margin-top: 40px;
-      text-align: center;
-      color: #64748b;
-    }
-  </style>
+    <title>SlickOfficials Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1>🚀 SlickOfficials Auto HQ</h1>
-  <h2>Affiliate Automation Dashboard</h2>
+    <h1>SlickOfficials Dashboard</h1>
 
-  <div class="card">
-    <h3>Automation Controls</h3>
-    <button onclick="manualRun()">🕒 Run Post Now</button>
-    <button onclick="manualReload()">🔄 Reload New Offers</button>
-    <button onclick="checkStatus()">📡 Check System Status</button>
-    <p class="status" id="status-text">Status: Idle</p>
-  </div>
-
-  <div class="card">
-    <h3>Current Affiliate Posts</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Text</th>
-          <th>Platform</th>
-          <th>Link</th>
-          <th>Image</th>
-        </tr>
-      </thead>
-      <tbody>
+    <h2>Recent Posts (Top 10)</h2>
+    <ul>
         {% for post in posts %}
-        <tr>
-          <td>{{ post.post_text }}</td>
-          <td>{{ post.platform }}</td>
-          <td><a href="{{ post.link }}" target="_blank" style="color:#38bdf8;">View</a></td>
-          <td><img src="{{ post.image_url }}" width="60"></td>
-        </tr>
+        <li>
+            <strong>{{ post.post_text }}</strong><br>
+            <small>Platform(s): {{ post.platform }}</small><br>
+            <a href="{{ post.link }}" target="_blank">Affiliate Link</a>
+            {% if post.image_url %}
+            <div>
+                <img src="{{ post.image_url }}" alt="Post Image" width="120">
+            </div>
+            {% endif %}
+        </li>
         {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    </ul>
 
-  <div class="footer">
-    <p>⚙️ Running every 4 hours | Timezones: Africa/Lagos & America/New_York</p>
-  </div>
+    <h2>Configuration</h2>
+    <pre>{{ config | tojson(indent=2) }}</pre>
 
-  <script>
-    async function manualRun() {
-      document.getElementById("status-text").innerText = "Status: Running post...";
-      const res = await fetch("/manual_post", { method: "POST" });
-      const data = await res.json();
-      document.getElementById("status-text").innerText = "✅ " + (data.message || "Post triggered");
-    }
-
-    async function manualReload() {
-      document.getElementById("status-text").innerText = "Status: Reloading offers...";
-      const res = await fetch("/manual_reload", { method: "POST" });
-      const data = await res.json();
-      document.getElementById("status-text").innerText = "✅ " + (data.message || "Offers refreshed");
-    }
-
-    async function checkStatus() {
-      document.getElementById("status-text").innerText = "Status: Checking...";
-      const res = await fetch("/status");
-      const data = await res.json();
-      document.getElementById("status-text").innerText = "📊 " + (data.status || "All systems operational");
-    }
-  </script>
+    <a href="/">⬅ Back to Home</a>
 </body>
 </html>
