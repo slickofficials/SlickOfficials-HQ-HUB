@@ -1,67 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SlickOfficials Dashboard</title>
-  <link rel="stylesheet" href="/static/style.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 30px;
-      background: #f7f9fb;
+    <meta charset="utf-8" />
+    <title>SlickOfficials HQ — Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+    async function fetchStatus() {
+        try {
+            const res = await fetch('/status');
+            const json = await res.json();
+            const eta = json.next_post_eta_seconds || 0;
+            startCountdown(eta);
+            document.getElementById('summary').innerText = JSON.stringify(json, null, 2);
+        } catch (e) {
+            console.error(e);
+        }
     }
-    h1, h2 { color: #1a1a1a; }
-    ul { list-style-type: none; padding: 0; }
-    li {
-      background: #fff;
-      border: 1px solid #ddd;
-      margin-bottom: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+    function startCountdown(seconds) {
+        const el = document.getElementById('countdown');
+        const bar = document.getElementById('progress-bar');
+        const total = seconds || 1;
+        let remaining = Math.max(0, Math.floor(total));
+        function tick() {
+            if (remaining <= 0) {
+                el.innerText = "Posting now or soon...";
+                bar.style.width = "100%";
+                return;
+            }
+            const h = Math.floor(remaining/3600);
+            const m = Math.floor((remaining%3600)/60);
+            const s = remaining % 60;
+            el.innerText = `${h}h ${m}m ${s}s`;
+            const pct = Math.floor((1 - (remaining/total)) * 100);
+            bar.style.width = pct + "%";
+            remaining--;
+            setTimeout(tick, 1000);
+        }
+        tick();
     }
-    img {
-      border-radius: 6px;
-      margin-top: 6px;
+
+    window.onload = function() {
+        fetchStatus();
     }
-    pre {
-      background: #272822;
-      color: #eee;
-      padding: 12px;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
-    a {
-      color: #007bff;
-      text-decoration: none;
-    }
-  </style>
+    </script>
 </head>
 <body>
-  <h1>🔥 SlickOfficials Dashboard</h1>
+    <header>
+        <h1>🔥 SlickOfficials HQ</h1>
+        <p>Auto-post every {{ config.POST_INTERVAL_HOURS if config.POST_INTERVAL_HOURS else 4 }} hours • AWIN: {{config.AWIN_PUBLISHER_ID}} • Rakuten: {{config.RAKUTEN_SCOPE_ID}}</p>
+    </header>
 
-  <h2>Recent Auto-Posts</h2>
-  {% if posts %}
-  <ul>
-    {% for post in posts %}
-    <li>
-      <strong>{{ post.post_text }}</strong><br>
-      <small>Platform(s): {{ post.platform }}</small><br>
-      <a href="{{ post.link }}" target="_blank">{{ post.link }}</a><br>
-      {% if post.image_url %}
-      <img src="{{ post.image_url }}" alt="Post Image" width="200">
-      {% endif %}
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <p>No posts yet. Waiting for next auto-run ⏳</p>
-  {% endif %}
+    <section>
+        <h2>Next Auto Post</h2>
+        <div id="countdown">Loading...</div>
+        <div id="progress-bar-container"><div id="progress-bar"></div></div>
+    </section>
 
-  <h2>Config Overview</h2>
-  <pre>{{ config | tojson(indent=2) }}</pre>
+    <section>
+        <h2>Recent Posts (Top 50)</h2>
+        {% if posts %}
+        <ul>
+            {% for p in posts %}
+            <li>
+                <strong>{{ p.post_text }}</strong><br>
+                <small>Platforms: {{ p.platform }}</small><br>
+                <a href="{{ p.link }}" target="_blank">{{ p.link }}</a><br>
+                {% if p.image_url %}
+                <img src="{{ p.image_url }}" width="200" alt="img">
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No posts yet. Wait for approval polls or use manual endpoints.</p>
+        {% endif %}
+    </section>
 
-  <a href="/">⬅ Back to Home</a>
+    <section>
+        <h2>System Summary (JSON)</h2>
+        <pre id="summary">Loading...</pre>
+    </section>
+
+    <section>
+        <h2>Quick Actions</h2>
+        <p>Trigger manual actions (use Render web console or curl):</p>
+        <pre>
+POST /manual_discover?token=YOUR_TOKEN
+POST /manual_trigger_posts?token=YOUR_TOKEN
+        </pre>
+    </section>
 </body>
 </html>
