@@ -1,31 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SlickOfficials Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SlickOfficials Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      background: #f7f9fb;
+    }
+    h1, h2 { color: #1a1a1a; }
+    ul { list-style-type: none; padding: 0; }
+    li {
+      background: #fff;
+      border: 1px solid #ddd;
+      margin-bottom: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    img {
+      border-radius: 6px;
+      margin-top: 6px;
+    }
+    pre {
+      background: #272822;
+      color: #eee;
+      padding: 12px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    a {
+      color: #007bff;
+      text-decoration: none;
+    }
+  </style>
 </head>
 <body>
-    <h1>SlickOfficials Dashboard</h1>
+  <h1>🔥 SlickOfficials Dashboard</h1>
 
-    <h2>Recent Posts (Top 10)</h2>
-    <ul>
-        {% for post in posts %}
-        <li>
-            <strong>{{ post.post_text }}</strong><br>
-            <small>Platform(s): {{ post.platform }}</small><br>
-            <a href="{{ post.link }}" target="_blank">Affiliate Link</a>
-            {% if post.image_url %}
-            <div>
-                <img src="{{ post.image_url }}" alt="Post Image" width="120">
-            </div>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
+  <h2>Recent Auto-Posts</h2>
+  {% if posts %}
+  <ul>
+    {% for post in posts %}
+    <li>
+      <strong>{{ post.post_text }}</strong><br>
+      <small>Platform(s): {{ post.platform }}</small><br>
+      <a href="{{ post.link }}" target="_blank">{{ post.link }}</a><br>
+      {% if post.image_url %}
+      <img src="{{ post.image_url }}" alt="Post Image" width="200">
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p>No posts yet. Waiting for next auto-run ⏳</p>
+  {% endif %}
 
-    <h2>Configuration</h2>
-    <pre>{{ config | tojson(indent=2) }}</pre>
+  <h2>Config Overview</h2>
+  <pre>{{ config | tojson(indent=2) }}</pre>
 
-    <a href="/">⬅ Back to Home</a>
+  <a href="/">⬅ Back to Home</a>
 </body>
 </html>
