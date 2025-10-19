@@ -3,12 +3,17 @@ import os
 import pandas as pd
 import yaml
 import requests
+import random
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Initialize Flask
 app = Flask(__name__)
 
 # ---------------------------------------------------------
-# Load configuration
+# Load configuration (optional)
 # ---------------------------------------------------------
 def load_config():
     try:
@@ -30,25 +35,17 @@ def index():
 def dashboard():
     try:
         posts_df = pd.read_csv("data/posts.csv")
-        templates_df = pd.read_csv("data/templates.csv")
-
-        # Convert any datetime/timedelta to string for JSON safety
-        posts_df = posts_df.applymap(lambda x: str(x) if isinstance(x, (pd.Timestamp, pd.Timedelta)) else x)
-        templates_df = templates_df.applymap(lambda x: str(x) if isinstance(x, (pd.Timestamp, pd.Timedelta)) else x)
-
         config = load_config()
-
         return render_template(
             "dashboard.html",
             posts=posts_df.to_dict(orient="records"),
-            templates=templates_df.to_dict(orient="records"),
             config=config
         )
     except Exception as e:
         return f"Error loading dashboard: {e}", 500
 
 # ---------------------------------------------------------
-# Publer API: Test connection
+# Test Publer connection
 # ---------------------------------------------------------
 @app.route("/test_publer", methods=["GET"])
 def test_publer():
@@ -79,16 +76,30 @@ def test_publer():
         }), res.status_code
 
 # ---------------------------------------------------------
-# Publer API: Test post
+# Auto Post Affiliate Links to Publer
 # ---------------------------------------------------------
-@app.route("/test_post", methods=["POST"])
-def test_post():
+@app.route("/auto_post", methods=["POST"])
+def auto_post():
     api_key = os.getenv("PUBLER_API_KEY")
     account_id = os.getenv("PUBLER_ACCOUNT_ID")
 
     if not api_key or not account_id:
         return jsonify({"status": "error", "message": "Missing PUBLER_API_KEY or PUBLER_ACCOUNT_ID"}), 400
 
+    # Load affiliate posts
+    try:
+        df = pd.read_csv("data/posts.csv")  # must have 'post_text' and 'deep_link' columns
+    except Exception as e:
+        return jsonify({"status": "error", "message": f"Error loading posts.csv: {e}"}), 500
+
+    if df.empty:
+        return jsonify({"status": "error", "message": "posts.csv is empty"}), 400
+
+    # Choose a random post
+    post = df.sample(1).iloc[0]
+    caption = f"{post['post_text']}\n\n👉 {post['deep_link']}"
+
+    # Prepare Publer payload
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
@@ -97,17 +108,17 @@ def test_post():
     payload = {
         "accounts": [account_id],
         "content": {
-            "text": "🚀 Test post from SlickOfficials Auto HQ — connected via Publer API!"
+            "text": caption
         }
     }
 
-    url = "https://api.publer.io/v1/posts"
-    res = requests.post(url, headers=headers, json=payload)
+    res = requests.post("https://api.publer.io/v1/posts", headers=headers, json=payload)
 
     if res.status_code == 201:
         return jsonify({
             "status": "success",
-            "post": res.json()
+            "posted": caption,
+            "response": res.json()
         }), 201
     else:
         return jsonify({
@@ -116,14 +127,7 @@ def test_post():
         }), res.status_code
 
 # ---------------------------------------------------------
-# Health Check (for Render)
-# ---------------------------------------------------------
-@app.route("/health")
-def health():
-    return jsonify({"status": "ok"}), 200
-
-# ---------------------------------------------------------
-# Run the app
+# Run Flask with Gunicorn
 # ---------------------------------------------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
