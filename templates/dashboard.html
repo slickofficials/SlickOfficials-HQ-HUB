@@ -1,143 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>SlickOfficials Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 40px;
-            background-color: #f9fafb;
-            color: #222;
-        }
-        h1, h2 {
-            color: #111;
-        }
-        .uptime-box {
-            background: #fff;
-            border-radius: 10px;
-            padding: 15px 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .status {
-            font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        .online {
-            color: #fff;
-            background: #22c55e;
-        }
-        .offline {
-            color: #fff;
-            background: #ef4444;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        li {
-            padding: 6px 0;
-            border-bottom: 1px solid #ddd;
-        }
-        a {
-            display: inline-block;
-            margin-top: 20px;
-            text-decoration: none;
-            color: #2563eb;
-        }
-        canvas {
-            max-width: 600px;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>SlickOfficials Auto HQ — Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #38bdf8;
+    }
+    button {
+      background-color: #2563eb;
+      border: none;
+      color: white;
+      padding: 10px 18px;
+      margin: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s ease-in-out;
+    }
+    button:hover {
+      background-color: #1e40af;
+    }
+    .card {
+      background-color: #1e293b;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 15px;
+    }
+    .status {
+      font-size: 14px;
+      margin-top: 8px;
+      color: #94a3b8;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #334155;
+    }
+    th {
+      background-color: #1e3a8a;
+    }
+    tr:hover {
+      background-color: #1e293b;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #64748b;
+    }
+  </style>
 </head>
 <body>
-    <h1>SlickOfficials Dashboard</h1>
+  <h1>🚀 SlickOfficials Auto HQ</h1>
+  <h2>Affiliate Automation Dashboard</h2>
 
-    <div class="uptime-box">
-        <h2>App Uptime Monitor</h2>
-        <p>Status: <span id="appStatus" class="status">Checking...</span></p>
-        <p>Last checked: <span id="lastChecked">-</span></p>
-        <canvas id="uptimeChart"></canvas>
-    </div>
+  <div class="card">
+    <h3>Automation Controls</h3>
+    <button onclick="manualRun()">🕒 Run Post Now</button>
+    <button onclick="manualReload()">🔄 Reload New Offers</button>
+    <button onclick="checkStatus()">📡 Check System Status</button>
+    <p class="status" id="status-text">Status: Idle</p>
+  </div>
 
-    <h2>Recent Posts (Top 10)</h2>
-    <ul>
+  <div class="card">
+    <h3>Current Affiliate Posts</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Text</th>
+          <th>Platform</th>
+          <th>Link</th>
+          <th>Image</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for post in posts %}
-        <li>{{ post.post_text }} (Platforms: {{ post.platform }})</li>
+        <tr>
+          <td>{{ post.post_text }}</td>
+          <td>{{ post.platform }}</td>
+          <td><a href="{{ post.link }}" target="_blank" style="color:#38bdf8;">View</a></td>
+          <td><img src="{{ post.image_url }}" width="60"></td>
+        </tr>
         {% endfor %}
-    </ul>
+      </tbody>
+    </table>
+  </div>
 
-    <h2>Config</h2>
-    <pre>{{ config | tojson }}</pre>
+  <div class="footer">
+    <p>⚙️ Running every 4 hours | Timezones: Africa/Lagos & America/New_York</p>
+  </div>
 
-    <a href="/">Back to Home</a>
+  <script>
+    async function manualRun() {
+      document.getElementById("status-text").innerText = "Status: Running post...";
+      const res = await fetch("/manual_post", { method: "POST" });
+      const data = await res.json();
+      document.getElementById("status-text").innerText = "✅ " + (data.message || "Post triggered");
+    }
 
-    <script>
-        const historyData = [];
-        const maxPoints = 10;
-        const ctx = document.getElementById('uptimeChart').getContext('2d');
+    async function manualReload() {
+      document.getElementById("status-text").innerText = "Status: Reloading offers...";
+      const res = await fetch("/manual_reload", { method: "POST" });
+      const data = await res.json();
+      document.getElementById("status-text").innerText = "✅ " + (data.message || "Offers refreshed");
+    }
 
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'App Status (1 = Online, 0 = Offline)',
-                    data: [],
-                    borderColor: '#22c55e',
-                    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 4,
-                }]
-            },
-            options: {
-                scales: {
-                    y: { min: 0, max: 1, ticks: { stepSize: 1 } }
-                }
-            }
-        });
-
-        async function checkHealth() {
-            const statusEl = document.getElementById("appStatus");
-            const timeEl = document.getElementById("lastChecked");
-            const now = new Date();
-
-            try {
-                const res = await fetch("/health");
-                const data = await res.json();
-
-                statusEl.textContent = "Online";
-                statusEl.className = "status online";
-                timeEl.textContent = now.toLocaleString();
-
-                addToHistory(1, now);
-            } catch (err) {
-                statusEl.textContent = "Offline";
-                statusEl.className = "status offline";
-                timeEl.textContent = now.toLocaleString();
-
-                addToHistory(0, now);
-            }
-        }
-
-        function addToHistory(status, time) {
-            if (historyData.length >= maxPoints) historyData.shift();
-            historyData.push({ status, time });
-
-            chart.data.labels = historyData.map(e => e.time.toLocaleTimeString());
-            chart.data.datasets[0].data = historyData.map(e => e.status);
-            chart.update();
-        }
-
-        // Start monitoring
-        checkHealth();
-        setInterval(checkHealth, 30000);
-    </script>
+    async function checkStatus() {
+      document.getElementById("status-text").innerText = "Status: Checking...";
+      const res = await fetch("/status");
+      const data = await res.json();
+      document.getElementById("status-text").innerText = "📊 " + (data.status || "All systems operational");
+    }
+  </script>
 </body>
 </html>
