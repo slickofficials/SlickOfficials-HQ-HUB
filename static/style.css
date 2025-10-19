@@ -1,10 +1,16 @@
 body {
-  font-family: "Inter", sans-serif;
-  background-color: #fafafa;
+    font-family: Inter, Roboto, Arial, sans-serif;
+    margin: 28px;
+    background: #f3f6fb;
+    color: #0b1221;
 }
-h1 {
-  color: #111;
+header h1 { color: #ef6c00; margin-bottom: 4px; }
+section { margin-top: 18px; }
+#progress-bar-container {
+    width: 100%; background: #e6e9ef; height: 18px; border-radius: 8px; overflow: hidden;
 }
-a:hover {
-  text-decoration: underline;
-}
+#progress-bar { height: 18px; width: 0%; background: linear-gradient(90deg,#ff8a00,#ff3d00); transition: width 0.5s; }
+ul { list-style: none; padding: 0; }
+li { background: #fff; border-radius: 8px; padding: 12px; margin: 8px 0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+img { border-radius: 6px; margin-top: 6px; }
+pre { background: #0b1221; color: #dbeafe; padding: 12px; border-radius: 6px; overflow-x: auto; }
