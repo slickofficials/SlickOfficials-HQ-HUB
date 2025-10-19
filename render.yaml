@@ -1,24 +1,26 @@
-# render.yaml
 services:
   - type: web
-    name: slickofficials-hq
+    name: slickofficials-hq-hub
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app --timeout 180 --workers 2 --threads 2 --bind 0.0.0.0:$PORT
     plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
     envVars:
-      - key: ADMIN_USERNAME
-        value: Slickofficials HQ
-      - key: ADMIN_PASSWORD
-        value:YOUR_PASSWORD
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DEFAULT_IMAGE_URL
-        value: https://i.imgur.com/fitness1.jpg
-      # Optional: adjust intervals (hours)
-      - key: POST_INTERVAL_HOURS
-        value: "4"
-      - key: APPROVAL_POLL_HOURS
-        value: "2"
-      - key: DISCOVER_INTERVAL_HOURS
-        value: "24"
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: PORT
+        value: 5000
+      # All secrets below should be added in Render dashboard, not here:
+      # ADMIN_USERNAME
+      # ADMIN_PASSWORD
+      # PUBLER_API_KEY
+      # AWIN_API_TOKEN
+      # AWIN_PUBLISHER_ID
+      # RAKUTEN_SCOPE_ID
+      # RAKUTEN_SECURITY_TOKEN
+      # RAKUTEN_WEBSERVICES_TOKEN
+      # FACEBOOK_ACCOUNT_ID
+      # INSTAGRAM_ACCOUNT_ID
+      # TWITTER_ACCOUNT_ID
+      # TIKTOK_ACCOUNT_ID
+      # DEFAULT_IMAGE_URL
