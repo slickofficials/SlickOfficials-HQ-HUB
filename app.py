@@ -1,116 +1,117 @@
-from flask import Flask, render_template, jsonify, request
 import os
-import pandas as pd
-import yaml
-import requests
+import csv
+import json
+import random
+import datetime
+from flask import Flask, jsonify, render_template
 
-# Initialize Flask
-app = Flask(__name__, template_folder="templates", static_folder="static")
+app = Flask(__name__)
 
-# ---------------------------------------------------------
-# Load configuration
-# ---------------------------------------------------------
-def load_config():
+# --- CONFIG ---
+POST_INTERVAL_HOURS = 4
+DATA_FILE = "data/posts.csv"
+LAST_POST_FILE = "data/last_post.json"
+
+
+def read_posts():
+    """Read all posts from CSV"""
+    posts = []
     try:
-        with open("config.yaml", "r") as file:
-            config = yaml.safe_load(file)
-        return config
-    except Exception as e:
-        print(f"Error loading config.yaml: {e}")
-        return {}
+        with open(DATA_FILE, newline='', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            for row in reader:
+                posts.append(row)
+    except FileNotFoundError:
+        posts = []
+    return posts
 
-# ---------------------------------------------------------
-# Routes
-# ---------------------------------------------------------
+
+def read_last_post():
+    """Read last post timestamp"""
+    try:
+        with open(LAST_POST_FILE, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"last_post_time": None, "posted_links": []}
+
+
+def save_last_post(data):
+    """Save last post info"""
+    os.makedirs(os.path.dirname(LAST_POST_FILE), exist_ok=True)
+    with open(LAST_POST_FILE, "w") as f:
+        json.dump(data, f)
+
+
 @app.route("/")
-def index():
-    return render_template("index.html")
+def home():
+    return "<h2>✅ SlickOfficials Auto Poster Running Smooth</h2><p>Visit <a href='/dashboard'>Dashboard</a> or <a href='/status'>Status</a>.</p>"
+
 
 @app.route("/dashboard")
 def dashboard():
-    try:
-        posts_df = pd.read_csv("data/posts.csv")
-        templates_df = pd.read_csv("data/templates.csv") if os.path.exists("data/templates.csv") else pd.DataFrame()
-        config = load_config()
-        return render_template(
-            "dashboard.html",
-            posts=posts_df.to_dict(orient="records"),
-            templates=templates_df.to_dict(orient="records"),
-            config=config
-        )
-    except Exception as e:
-        return f"Error loading dashboard: {e}", 500
-
-# ---------------------------------------------------------
-# Publer API: Test connection
-# ---------------------------------------------------------
-@app.route("/test_publer", methods=["GET"])
-def test_publer():
-    api_key = os.getenv("PUBLER_API_KEY")
-    account_id = os.getenv("PUBLER_ACCOUNT_ID")
-
-    if not api_key:
-        return jsonify({"status": "error", "message": "PUBLER_API_KEY not found in environment"}), 400
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
+    posts = read_posts()
+    config = {
+        "AWIN_PUBLISHER_ID": os.getenv("AWIN_PUBLISHER_ID"),
+        "RAKUTEN_SCOPE_ID": os.getenv("RAKUTEN_SCOPE_ID"),
+        "PUBLER_ID": os.getenv("PUBLER_ID"),
+        "POST_INTERVAL_HOURS": POST_INTERVAL_HOURS,
     }
+    return render_template("dashboard.html", posts=posts[:10], config=config)
 
-    url = "https://api.publer.io/v1/accounts"
-    res = requests.get(url, headers=headers)
 
-    if res.status_code == 200:
-        return jsonify({
-            "status": "success",
-            "accounts": res.json(),
-            "current_account_id": account_id
-        }), 200
+@app.route("/status")
+def status():
+    """System status endpoint"""
+    last_data = read_last_post()
+    last_post_time = last_data.get("last_post_time")
+
+    # Compute next run time
+    if last_post_time:
+        last_time = datetime.datetime.fromisoformat(last_post_time)
+        next_time = last_time + datetime.timedelta(hours=POST_INTERVAL_HOURS)
+        remaining = next_time - datetime.datetime.utcnow()
     else:
-        return jsonify({
-            "status": "error",
-            "response": res.text
-        }), res.status_code
+        last_time = None
+        remaining = datetime.timedelta(0)
 
-# ---------------------------------------------------------
-# Publer API: Test post
-# ---------------------------------------------------------
-@app.route("/test_post", methods=["POST"])
-def test_post():
-    api_key = os.getenv("PUBLER_API_KEY")
-    account_id = os.getenv("PUBLER_ACCOUNT_ID")
-
-    if not api_key or not account_id:
-        return jsonify({"status": "error", "message": "Missing PUBLER_API_KEY or PUBLER_ACCOUNT_ID"}), 400
-
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
+    status_data = {
+        "status": "online",
+        "server_time_utc": datetime.datetime.utcnow().isoformat(),
+        "last_post_time": last_post_time,
+        "next_post_eta": str(remaining),
+        "total_posts_in_csv": len(read_posts()),
+        "posted_links": last_data.get("posted_links", []),
+        "env_summary": {
+            "AWIN_PUBLISHER_ID": os.getenv("AWIN_PUBLISHER_ID"),
+            "RAKUTEN_SCOPE_ID": os.getenv("RAKUTEN_SCOPE_ID"),
+            "PUBLER_ID": os.getenv("PUBLER_ID"),
+        },
     }
 
-    payload = {
-        "accounts": [account_id],
-        "content": {
-            "text": "🚀 Test post from Zeal Pet HQ — connected via Publer API!"
-        }
-    }
+    # Safe JSON serialization
+    return jsonify(status_data)
 
-    url = "https://api.publer.io/v1/posts"
-    res = requests.post(url, headers=headers, json=payload)
 
-    if res.status_code == 201:
-        return jsonify({
-            "status": "success",
-            "post": res.json()
-        }), 201
-    else:
-        return jsonify({
-            "status": "error",
-            "response": res.text
-        }), res.status_code
+@app.route("/run_post_now")
+def manual_run():
+    """Simulate posting logic manually"""
+    posts = read_posts()
+    if not posts:
+        return jsonify({"error": "No posts available in CSV"})
 
-# ---------------------------------------------------------
-# Run the app
-# ---------------------------------------------------------
+    post = random.choice(posts)
+    last_data = read_last_post()
+
+    if post["link"] in last_data.get("posted_links", []):
+        return jsonify({"message": "Post already published", "post": post})
+
+    last_data["posted_links"].append(post["link"])
+    last_data["last_post_time"] = datetime.datetime.utcnow().isoformat()
+    save_last_post(last_data)
+
+    return jsonify({"message": "Simulated post successful", "post": post})
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
