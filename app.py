@@ -25,6 +25,10 @@ app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+# ✅ Ensure tables always exist (even on Render cold start)
+with app.app_context():
+    db.create_all()
+
 # ---------------- ENV VARIABLES ----------------
 PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
 PUBLER_WORKSPACE_ID = os.getenv("PUBLER_WORKSPACE_ID")
