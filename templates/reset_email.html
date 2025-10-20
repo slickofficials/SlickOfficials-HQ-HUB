@@ -1,15 +1,13 @@
 <!doctype html>
 <html>
-  <body style="font-family: Arial, sans-serif; color:#111;">
-    <div style="max-width:600px;margin:0 auto;background:#f9fafb;padding:20px;border-radius:8px;">
-      <h2 style="color:#0a2433">Slickofficials HQ — Password Reset</h2>
-      <p>Hello,</p>
-      <p>You requested an admin password reset. Click the button below to set a new password. The link expires in 30 minutes.</p>
-      <p style="text-align:center;margin:30px 0;">
-        <a href="{{ reset_link }}" style="display:inline-block;padding:12px 20px;background:#00eaff;color:#00293a;border-radius:8px;text-decoration:none;font-weight:600;">Reset Password</a>
+  <body style="font-family:Inter, sans-serif;background:#f6f8fb;padding:20px">
+    <div style="max-width:600px;margin:auto;background:white;border-radius:12px;padding:20px">
+      <h2 style="color:#00a9ff">Password Reset</h2>
+      <p>Someone (hopefully you) requested a password reset. Click below to reset the admin password. Link expires in 30 minutes.</p>
+      <p style="text-align:center;margin:24px 0">
+        <a href="{{ reset_link }}" style="background:linear-gradient(90deg,#00eaff,#0078ff);color:white;padding:12px 18px;border-radius:8px;text-decoration:none;font-weight:700">Reset Password</a>
       </p>
-      <p>If you didn't request this, ignore this email.</p>
-      <p>— Slickofficials HQ</p>
+      <p style="font-size:12px;color:#666">If you didn't request this, ignore this email.</p>
     </div>
   </body>
 </html>
