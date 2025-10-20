@@ -10,15 +10,11 @@ services:
         sync: false
       - key: APP_PASSWORD
         sync: false
-      - key: AWIN_PUBLISHER_ID
-        sync: false
-      - key: RAKUTEN_SCOPE_ID
-        sync: false
-      - key: PUBLER_USER_ID
-        sync: false
-      - key: PUBLER_API_KEY
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: APP_SECRET_KEY
-        generateValue: true
+      - key: PUBLER_API_KEY
+        sync: false
