@@ -1,136 +1,132 @@
-{% extends "base.html" %}
-{% block title %}Access Terminal - Neural Login{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - Control Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 50%, #0a0a0a, #1a1a1a, #000);
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 1.2s ease-in-out;
+    }
 
-{% block content %}
-<div class="login-container fade-in">
-  <div class="login-box glass">
-    <h2 class="title-glow">🔐 Access Terminal</h2>
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
+    .container {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 30px rgba(0,0,0,0.7);
+      width: 360px;
+      text-align: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .password-container {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 16px;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .loader {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top: 3px solid #00c6ff;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    a {
+      color: #00c6ff;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔐 Control Access</h2>
     {% if error %}
-      <p class="error">{{ error }}</p>
+      <p style="color:#ff6666;">{{ error }}</p>
     {% endif %}
-
-    <form method="POST" action="/" class="login-form">
-      <div class="input-group">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+    <form method="POST">
+      <input type="text" name="username" placeholder="Username" required>
+      <div class="password-container">
+        <input type="password" name="password" id="password" placeholder="Password" required>
+        <span class="toggle-password" onclick="togglePassword()">👁️</span>
       </div>
-
-      <div class="input-group password-group">
-        <label for="password">Password</label>
-        <div class="password-wrapper">
-          <input type="password" id="password" name="password" placeholder="Enter your password" required>
-          <span id="togglePassword" class="toggle-eye">👁️</span>
-        </div>
-      </div>
-
-      <button type="submit" class="btn enter-btn">Enter System</button>
+      <button type="submit">Enter</button>
     </form>
+    <div class="loader"></div>
+    <p><a href="/forgot_password">Forgot Password?</a></p>
   </div>
-</div>
 
-<style>
-  .login-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 85vh;
-  }
+  <script>
+    function togglePassword() {
+      const pwd = document.getElementById('password');
+      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+    }
 
-  .login-box {
-    width: 380px;
-    padding: 40px 30px;
-    border-radius: 18px;
-    text-align: center;
-    box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-  }
-
-  .title-glow {
-    color: var(--accent);
-    text-shadow: 0 0 10px rgba(0,255,255,0.4);
-    margin-bottom: 30px;
-    letter-spacing: 1.5px;
-  }
-
-  .input-group {
-    text-align: left;
-    margin-bottom: 20px;
-  }
-
-  .input-group label {
-    font-size: 14px;
-    color: var(--accent);
-    display: block;
-    margin-bottom: 5px;
-  }
-
-  .input-group input {
-    width: 100%;
-    padding: 12px;
-    font-size: 15px;
-    border-radius: 10px;
-    border: none;
-    outline: none;
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-    backdrop-filter: blur(6px);
-    transition: all 0.3s ease;
-  }
-
-  .input-group input:focus {
-    box-shadow: 0 0 10px rgba(0,198,255,0.4);
-    background: rgba(255,255,255,0.2);
-  }
-
-  .password-wrapper {
-    position: relative;
-  }
-
-  .toggle-eye {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-  }
-
-  .toggle-eye:hover {
-    opacity: 1;
-  }
-
-  .enter-btn {
-    margin-top: 15px;
-    width: 100%;
-    font-size: 16px;
-    letter-spacing: 0.8px;
-    font-weight: bold;
-    background: linear-gradient(90deg, #00c6ff, #0072ff);
-  }
-
-  .enter-btn:hover {
-    background: linear-gradient(90deg, #0072ff, #00c6ff);
-    box-shadow: 0 0 15px rgba(0,198,255,0.4);
-  }
-
-  .error {
-    color: #ff4b5c;
-    background: rgba(255,0,0,0.1);
-    padding: 8px;
-    border-radius: 6px;
-    margin-bottom: 15px;
-  }
-</style>
-
-<script>
-  const togglePassword = document.getElementById('togglePassword');
-  const passwordInput = document.getElementById('password');
-  togglePassword.addEventListener('click', () => {
-    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-    passwordInput.setAttribute('type', type);
-    togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
-  });
-</script>
-{% endblock %}
+    const form = document.querySelector('form');
+    const loader = document.querySelector('.loader');
+    form.addEventListener('submit', () => {
+      loader.style.display = 'block';
+    });
+  </script>
+</body>
+</html>
