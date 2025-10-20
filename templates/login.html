@@ -2,182 +2,74 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SlickOfficials HQ - Access Portal</title>
+  <title>Slickofficials HQ | Login</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
-
     body {
-      min-height: 100vh;
+      margin: 0;
+      height: 100vh;
+      background: radial-gradient(circle at top left, #0a0021, #070016, #000);
       display: flex;
-      justify-content: center;
       align-items: center;
-      background: radial-gradient(circle at 20% 20%, #1a1a40, #0a0a1a);
-      overflow: hidden;
-      position: relative;
+      justify-content: center;
+      font-family: "Poppins", sans-serif;
+      color: #00eaff;
     }
-
-    /* Animated background glow */
-    .glow {
-      position: absolute;
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(255, 75, 43, 0.3), transparent 70%);
-      filter: blur(100px);
-      animation: moveGlow 10s infinite alternate ease-in-out;
-    }
-
-    .glow:nth-child(2) {
-      background: radial-gradient(circle, rgba(0, 128, 255, 0.25), transparent 70%);
-      top: auto;
-      bottom: 0;
-      left: auto;
-      right: 0;
-      animation-delay: 5s;
-    }
-
-    @keyframes moveGlow {
-      0% { transform: translate(0, 0); }
-      100% { transform: translate(100px, 100px); }
-    }
-
-    .container {
-      position: relative;
-      z-index: 10;
-      width: 380px;
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
+    .login-box {
+      background: rgba(25, 0, 60, 0.8);
+      padding: 2rem 3rem;
       border-radius: 20px;
-      padding: 45px 40px;
-      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+      box-shadow: 0 0 40px #00eaff55;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.1);
-      animation: slideUp 1s ease forwards;
+      width: 320px;
+      backdrop-filter: blur(12px);
     }
-
-    @keyframes slideUp {
-      from { transform: translateY(30px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-
-    .logo {
-      font-size: 2.6em;
-      font-weight: 700;
-      background: linear-gradient(90deg, #ff4b2b, #ff416c, #007bff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: glowText 3s ease-in-out infinite;
-    }
-
-    @keyframes glowText {
-      0%, 100% { filter: drop-shadow(0 0 6px rgba(255,75,43,0.5)); }
-      50% { filter: drop-shadow(0 0 12px rgba(0,128,255,0.7)); }
-    }
-
-    h2 {
-      color: #fff;
-      margin: 15px 0 30px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      font-size: 1.3em;
-    }
-
     input {
       width: 100%;
+      margin: 10px 0;
       padding: 12px;
-      margin-bottom: 15px;
       border: none;
-      border-radius: 10px;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      font-size: 0.95em;
-      transition: background 0.3s ease, transform 0.2s ease;
-    }
-
-    input:focus {
-      background: rgba(255,255,255,0.2);
-      transform: scale(1.03);
+      border-radius: 8px;
+      background: #120030;
+      color: #00eaff;
       outline: none;
+      font-size: 15px;
     }
-
     button {
       width: 100%;
       padding: 12px;
+      margin-top: 10px;
+      background: linear-gradient(90deg, #00eaff, #6f00ff);
       border: none;
-      border-radius: 10px;
-      background: linear-gradient(90deg, #ff4b2b, #ff416c, #007bff);
+      border-radius: 8px;
       color: white;
-      font-weight: 600;
-      font-size: 1em;
+      font-weight: bold;
       cursor: pointer;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      transition: all 0.3s;
     }
-
     button:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(255,75,43,0.4);
+      transform: scale(1.05);
+      box-shadow: 0 0 20px #00eaffaa;
     }
-
-    .footer {
-      color: rgba(255,255,255,0.6);
-      margin-top: 25px;
-      font-size: 0.8em;
-      line-height: 1.6;
-    }
-
-    .footer strong {
-      color: #ff4b2b;
-    }
-
-    @media (max-width: 420px) {
-      .container { width: 85%; padding: 35px 25px; }
-      .logo { font-size: 2.1em; }
-    }
-
-    .legal {
-      margin-top: 20px;
-      font-size: 0.75em;
-      color: rgba(255,255,255,0.5);
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 10px;
-    }
-
-    .legal h3 {
-      font-size: 0.9em;
-      color: #ff4b2b;
-      margin-bottom: 6px;
-    }
-
-    .legal p {
-      margin-bottom: 5px;
+    h1 { margin-bottom: 1rem; }
+    footer {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #888;
     }
   </style>
 </head>
 <body>
-  <div class="glow"></div>
-  <div class="glow"></div>
-  <div class="container">
-    <div class="logo">SlickOfficials HQ</div>
-    <h2>Enter Your Command Access</h2>
-    <form method="POST">
-      <input type="text" name="username" placeholder="Username" required>
-      <input type="password" name="password" placeholder="Password" required>
-      <button type="submit">Access HQ</button>
+  <div class="login-box">
+    <h1>🔐 Slickofficials HQ</h1>
+    <form method="POST" action="/login">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
     </form>
-
-    <div class="footer">
-      <div class="legal">
-        <h3>🔒 Legal & Ownership</h3>
-        <p>All trademarks, digital systems, and platform integrations under the <strong>SlickOfficials HQ</strong> brand are proprietary to <strong>Amson Multi Global Ltd</strong>.</p>
-        <p>© 2025 SlickOfficials HQ | All Rights Reserved.</p>
-      </div>
-    </div>
+    <footer>
+      © 2025 Slickofficials HQ | All Rights Reserved.<br>
+      Amson Multi Global Ltd
+    </footer>
   </div>
 </body>
 </html>
