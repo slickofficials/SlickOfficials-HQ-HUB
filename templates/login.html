@@ -1,20 +1,183 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>SlickOfficials HQ - Login</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SlickOfficials HQ - Access Portal</title>
   <style>
-    body {font-family: Poppins, sans-serif; background: #000; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh;}
-    form {background: #111; padding: 40px; border-radius: 16px; box-shadow: 0 0 20px #0f0;}
-    input {display:block; margin:10px 0; width:100%; padding:10px; border:none; border-radius:8px;}
-    button {background:#0f0; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;}
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at 20% 20%, #1a1a40, #0a0a1a);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Animated background glow */
+    .glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 75, 43, 0.3), transparent 70%);
+      filter: blur(100px);
+      animation: moveGlow 10s infinite alternate ease-in-out;
+    }
+
+    .glow:nth-child(2) {
+      background: radial-gradient(circle, rgba(0, 128, 255, 0.25), transparent 70%);
+      top: auto;
+      bottom: 0;
+      left: auto;
+      right: 0;
+      animation-delay: 5s;
+    }
+
+    @keyframes moveGlow {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(100px, 100px); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 380px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      border-radius: 20px;
+      padding: 45px 40px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.1);
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.1);
+      animation: slideUp 1s ease forwards;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .logo {
+      font-size: 2.6em;
+      font-weight: 700;
+      background: linear-gradient(90deg, #ff4b2b, #ff416c, #007bff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: glowText 3s ease-in-out infinite;
+    }
+
+    @keyframes glowText {
+      0%, 100% { filter: drop-shadow(0 0 6px rgba(255,75,43,0.5)); }
+      50% { filter: drop-shadow(0 0 12px rgba(0,128,255,0.7)); }
+    }
+
+    h2 {
+      color: #fff;
+      margin: 15px 0 30px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      font-size: 1.3em;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 0.95em;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    input:focus {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.03);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #ff4b2b, #ff416c, #007bff);
+      color: white;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(255,75,43,0.4);
+    }
+
+    .footer {
+      color: rgba(255,255,255,0.6);
+      margin-top: 25px;
+      font-size: 0.8em;
+      line-height: 1.6;
+    }
+
+    .footer strong {
+      color: #ff4b2b;
+    }
+
+    @media (max-width: 420px) {
+      .container { width: 85%; padding: 35px 25px; }
+      .logo { font-size: 2.1em; }
+    }
+
+    .legal {
+      margin-top: 20px;
+      font-size: 0.75em;
+      color: rgba(255,255,255,0.5);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 10px;
+    }
+
+    .legal h3 {
+      font-size: 0.9em;
+      color: #ff4b2b;
+      margin-bottom: 6px;
+    }
+
+    .legal p {
+      margin-bottom: 5px;
+    }
   </style>
 </head>
 <body>
-  <form method="POST">
-    <h2>Welcome HQ 👑</h2>
-    <input name="username" placeholder="Username" required>
-    <input name="password" type="password" placeholder="Password" required>
-    <button type="submit">Access Hub</button>
-  </form>
+  <div class="glow"></div>
+  <div class="glow"></div>
+  <div class="container">
+    <div class="logo">SlickOfficials HQ</div>
+    <h2>Enter Your Command Access</h2>
+    <form method="POST">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <button type="submit">Access HQ</button>
+    </form>
+
+    <div class="footer">
+      <div class="legal">
+        <h3>🔒 Legal & Ownership</h3>
+        <p>All trademarks, digital systems, and platform integrations under the <strong>SlickOfficials HQ</strong> brand are proprietary to <strong>Amson Multi Global Ltd</strong>.</p>
+        <p>© 2025 SlickOfficials HQ | All Rights Reserved.</p>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
