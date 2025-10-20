@@ -5,6 +5,5 @@ requests==2.32.3
 python-dotenv==1.0.1
 gunicorn==23.0.0
 APScheduler==3.11.0
+psycopg2-binary==2.9.9  # only needed if using Postgres on Render
 itsdangerous==2.2.0
-psycopg2-binary==2.9.9
-tzlocal==5.3.1
