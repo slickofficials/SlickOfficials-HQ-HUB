@@ -1,0 +1,16 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:Inter, sans-serif;background:#071022;color:#e6f7ff;padding:20px">
+  <div style="max-width:800px;margin:auto;background:#071226;padding:20px;border-radius:12px">
+    <h2 style="color:#00eaff">{{ post.title or 'Post' }}</h2>
+    <p>{{ post.body }}</p>
+    {% if post.image_filename %}
+      <img src="{{ url_for('upload_file', filename=post.image_filename) }}" style="max-width:100%;border-radius:8px" />
+    {% endif %}
+    <p>Status: <strong>{{ post.status }}</strong></p>
+    <pre style="background:#001421;padding:12px;border-radius:8px;color:#9fe9ff">{{ post.result_log or 'No logs yet' }}</pre>
+    <p><a href="{{ url_for('dashboard') }}" style="color:#9fe9ff">Back</a></p>
+  </div>
+</body>
+</html>
