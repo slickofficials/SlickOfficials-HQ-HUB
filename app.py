@@ -1,94 +1,127 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+import os
+import requests
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import requests, os
+from apscheduler.schedulers.background import BackgroundScheduler
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+app.secret_key = os.getenv("APP_SECRET_KEY", "fallback_secret")
 
-# Database config
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("DATABASE_URL", "sqlite:///slickhq.db")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# ---------------- Database Setup ---------------- #
+db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://")
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# Models
+# ---------------- Models ---------------- #
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
 
-class Post(db.Model):
+class Analytics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    platform = db.Column(db.String(50))
+    clicks = db.Column(db.Integer)
+    impressions = db.Column(db.Integer)
+    conversions = db.Column(db.Integer)
+    revenue = db.Column(db.Float)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
 
-# Initialize DB
 with app.app_context():
     db.create_all()
-
-# ----------------- AUTH -----------------
-@app.route('/')
-def home():
-    if 'user' in session:
-        return redirect(url_for('dashboard'))
-    return redirect(url_for('login'))
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        user = User.query.filter_by(username=request.form['username'], password=request.form['password']).first()
-        if user:
-            session['user'] = user.username
-            return redirect(url_for('dashboard'))
-        else:
-            return render_template('login.html', error="Invalid login credentials")
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.pop('user', None)
-    return redirect(url_for('login'))
-
-# ----------------- DASHBOARD -----------------
-@app.route('/dashboard')
-def dashboard():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-    posts = Post.query.order_by(Post.created_at.desc()).all()
-    return render_template('dashboard.html', posts=posts)
-
-# ----------------- CREATE POST -----------------
-@app.route('/create_post', methods=['GET', 'POST'])
-def create_post():
-    if 'user' not in session:
-        return redirect(url_for('login'))
-
-    if request.method == 'POST':
-        content = request.form['content']
-        new_post = Post(content=content)
-        db.session.add(new_post)
+    # Create a default admin user if none exists
+    if not User.query.filter_by(username="admin").first():
+        admin = User(username="admin", password="admin123")
+        db.session.add(admin)
         db.session.commit()
-        return redirect(url_for('dashboard'))
+        print("✅ Default admin user created (username='admin', password='admin123')")
 
-    return render_template('create_post.html')
+# ---------------- Login ---------------- #
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
 
-# ----------------- PUBLER TEST -----------------
-@app.route('/test_publer')
+        user = User.query.filter_by(username=username, password=password).first()
+        if user:
+            session["user"] = username
+            flash("Welcome back, " + username + "!", "success")
+            return redirect(url_for("dashboard"))
+        else:
+            flash("Invalid login credentials", "danger")
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None)
+    flash("You’ve been logged out.", "info")
+    return redirect(url_for("login"))
+
+# ---------------- Dashboard ---------------- #
+@app.route("/")
+def dashboard():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    data = Analytics.query.order_by(Analytics.date.desc()).limit(10).all()
+    total_clicks = sum(d.clicks for d in data)
+    total_revenue = sum(d.revenue for d in data)
+
+    return render_template(
+        "dashboard.html",
+        user=session["user"],
+        analytics=data,
+        total_clicks=total_clicks,
+        total_revenue=total_revenue,
+    )
+
+# ---------------- Publer Quick Actions ---------------- #
+@app.route("/test_publer")
 def test_publer():
-    headers = {"Authorization": f"Bearer {os.getenv('PUBLER_API_KEY', '')}"}
+    api_key = os.getenv("PUBLER_API_KEY")
+    workspace_id = os.getenv("PUBLER_WORKSPACE_ID")
+
+    if not api_key or not workspace_id:
+        return jsonify({"error": "Missing PUBLER_API_KEY or PUBLER_WORKSPACE_ID"}), 400
+
+    headers = {"Authorization": f"Bearer {api_key}"}
+    url = f"https://api.publer.io/v1/workspaces/{workspace_id}/posts"
+
     try:
-        response = requests.get("https://api.publer.io/v1/me", headers=headers, timeout=5)
-        data = response.json()
-        return jsonify(data)
+        r = requests.get(url, headers=headers)
+        if r.status_code == 200:
+            return jsonify(r.json())
+        return jsonify({"error": f"Publer API error: {r.status_code}", "details": r.text}), 400
     except Exception as e:
-        return jsonify({"status": "error", "message": "Publer API not reachable from Render, but your app is fine."})
+        return jsonify({"error": str(e)}), 500
 
-# ----------------- RECENT POSTS API -----------------
-@app.route('/get_recent_posts')
-def get_recent_posts():
-    posts = Post.query.order_by(Post.created_at.desc()).limit(5).all()
-    return jsonify([{"id": p.id, "content": p.content, "created_at": p.created_at.isoformat()} for p in posts])
+# ---------------- Scheduler ---------------- #
+def update_data():
+    with app.app_context():
+        new_entry = Analytics(
+            platform="Awin",
+            clicks=120,
+            impressions=3000,
+            conversions=5,
+            revenue=78.23,
+        )
+        db.session.add(new_entry)
+        db.session.commit()
+        print(f"[Scheduler] Data updated at {datetime.utcnow()}")
 
-# ----------------- RUN -----------------
-if __name__ == '__main__':
-    app.run(debug=True)
+scheduler = BackgroundScheduler()
+scheduler.add_job(update_data, "interval", hours=6)
+scheduler.start()
+
+# ---------------- Run ---------------- #
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
