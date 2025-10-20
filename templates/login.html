@@ -1,132 +1,154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Control Panel</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slickofficials HQ — Login</title>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/static/images/favicon.png">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
       margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #05080f, #0a0f1f, #000000);
       height: 100vh;
-      background: radial-gradient(circle at 50% 50%, #0a0a0a, #1a1a1a, #000);
-      font-family: 'Poppins', sans-serif;
-      color: white;
       display: flex;
-      justify-content: center;
       align-items: center;
-      animation: fadeIn 1.2s ease-in-out;
+      justify-content: center;
+      color: #fff;
+      overflow: hidden;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(30px); }
+    .login-container {
+      background: rgba(15, 20, 35, 0.85);
+      backdrop-filter: blur(20px);
+      padding: 50px 40px;
+      border-radius: 16px;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.15);
+      width: 380px;
+      text-align: center;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      animation: floatIn 1.2s ease;
+    }
+
+    @keyframes floatIn {
+      from { opacity: 0; transform: translateY(40px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
-    .container {
-      background: rgba(255, 255, 255, 0.08);
-      padding: 40px;
-      border-radius: 20px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 30px rgba(0,0,0,0.7);
-      width: 360px;
-      text-align: center;
+    .logo {
+      width: 100px;
+      margin-bottom: 20px;
+      animation: glow 2.5s infinite alternate;
+    }
+
+    @keyframes glow {
+      from { filter: drop-shadow(0 0 3px #00eaff); }
+      to { filter: drop-shadow(0 0 12px #00eaff); }
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      color: #00eaff;
+      margin-bottom: 25px;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
     }
 
     input {
       width: 100%;
-      padding: 12px;
+      padding: 12px 15px;
       margin: 10px 0;
+      border-radius: 10px;
       border: none;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.1);
-      color: white;
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      font-size: 0.95rem;
       outline: none;
-      font-size: 15px;
+      transition: 0.3s;
+    }
+
+    input:focus {
+      box-shadow: 0 0 10px #00eaff;
     }
 
     .password-container {
       position: relative;
     }
 
-    .toggle-password {
+    .eye-toggle {
       position: absolute;
-      right: 10px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
       cursor: pointer;
-      font-size: 16px;
+      color: #00eaff;
+      font-size: 1.2rem;
+      user-select: none;
     }
 
     button {
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      background: linear-gradient(90deg, #00eaff, #0078ff);
+      color: #fff;
       border: none;
-      padding: 12px 20px;
+      padding: 12px 0;
       border-radius: 10px;
-      font-size: 16px;
-      color: white;
-      cursor: pointer;
-      transition: 0.3s;
       width: 100%;
+      font-weight: 600;
+      font-size: 1rem;
+      margin-top: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
     }
+
     button:hover {
       transform: scale(1.05);
+      box-shadow: 0 0 20px #00eaff;
     }
 
-    .loader {
-      border: 3px solid rgba(255, 255, 255, 0.1);
-      border-top: 3px solid #00c6ff;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
-      display: none;
+    footer {
+      margin-top: 20px;
+      font-size: 0.8rem;
+      color: #777;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    a {
-      color: #00c6ff;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    a:hover {
-      text-decoration: underline;
+    footer strong {
+      color: #00eaff;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>🔐 Control Access</h2>
-    {% if error %}
-      <p style="color:#ff6666;">{{ error }}</p>
-    {% endif %}
-    <form method="POST">
+
+  <div class="login-container">
+    <img src="/static/images/logo.png" alt="Slickofficials Logo" class="logo">
+    <h1>Enter HQ Access</h1>
+    <form action="/login" method="post">
       <input type="text" name="username" placeholder="Username" required>
+      
       <div class="password-container">
-        <input type="password" name="password" id="password" placeholder="Password" required>
-        <span class="toggle-password" onclick="togglePassword()">👁️</span>
+        <input type="password" id="password" name="password" placeholder="Password" required>
+        <span class="eye-toggle" onclick="togglePassword()">👁️</span>
       </div>
-      <button type="submit">Enter</button>
+      
+      <button type="submit">Access Dashboard</button>
     </form>
-    <div class="loader"></div>
-    <p><a href="/forgot_password">Forgot Password?</a></p>
+    <footer>
+      © 2025 <strong>Slickofficials HQ</strong><br>Powered by <strong>Amson Multi Global Ltd</strong>
+    </footer>
   </div>
 
   <script>
     function togglePassword() {
-      const pwd = document.getElementById('password');
-      pwd.type = pwd.type === 'password' ? 'text' : 'password';
+      const pwd = document.getElementById("password");
+      pwd.type = pwd.type === "password" ? "text" : "password";
     }
-
-    const form = document.querySelector('form');
-    const loader = document.querySelector('.loader');
-    form.addEventListener('submit', () => {
-      loader.style.display = 'block';
-    });
   </script>
+
 </body>
 </html>
