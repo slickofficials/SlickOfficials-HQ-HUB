@@ -3,79 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slickofficials HQ Login</title>
+  <title>Slickofficials HQ – Login</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
     body {
-      margin: 0;
-      height: 100vh;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(135deg, #0a0124, #1a0033);
+      color: #fff;
       display: flex;
-      justify-content: center;
       align-items: center;
-      background: radial-gradient(circle at 20% 30%, #0d0221, #0b001a 80%);
-      font-family: "Poppins", sans-serif;
-      color: #e0e0e0;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
     }
     .login-container {
-      background: rgba(20, 10, 40, 0.95);
-      border: 1px solid #1a1a3d;
+      background: rgba(20, 0, 50, 0.85);
+      border: 1px solid #00ffff;
       border-radius: 12px;
-      box-shadow: 0 0 25px #00ffff33;
       padding: 40px;
-      width: 360px;
-      text-align: center;
+      width: 350px;
+      box-shadow: 0 0 25px #00ffff33;
     }
     h1 {
-      color: #00eaff;
+      text-align: center;
+      color: #00ffff;
       margin-bottom: 30px;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
     }
-    input {
-      width: 90%;
-      padding: 12px;
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px 14px;
       margin: 10px 0;
-      border: none;
-      border-radius: 6px;
-      background: #161636;
-      color: #e0e0e0;
+      border: 1px solid #00ffff66;
+      border-radius: 8px;
+      background: #100028;
+      color: #fff;
       font-size: 15px;
-      outline: none;
-      transition: 0.3s;
     }
     input:focus {
-      box-shadow: 0 0 10px #00eaff88;
+      outline: none;
+      border-color: #00ffff;
+      box-shadow: 0 0 10px #00ffff88;
     }
     button {
       width: 100%;
       padding: 12px;
+      background: linear-gradient(90deg, #00ffff, #7a00ff);
       border: none;
-      border-radius: 6px;
-      background: linear-gradient(135deg, #00eaff, #5a00ff);
-      color: #fff;
+      border-radius: 8px;
+      font-weight: 700;
       font-size: 16px;
-      font-weight: 600;
       cursor: pointer;
+      color: #fff;
+      letter-spacing: 1px;
       transition: 0.3s;
     }
     button:hover {
-      opacity: 0.9;
-      box-shadow: 0 0 20px #00eaff88;
+      background: linear-gradient(90deg, #7a00ff, #00ffff);
+      box-shadow: 0 0 15px #00ffffaa;
     }
     .footer {
-      margin-top: 20px;
+      text-align: center;
       font-size: 12px;
-      color: #999;
+      color: #888;
+      margin-top: 25px;
     }
   </style>
 </head>
 <body>
-  <form method="POST" class="login-container">
-    <h1>🔐 Slickofficials HQ</h1>
+  <form class="login-container" method="POST" action="/login">
+    <h1>Slickofficials HQ</h1>
     <input type="text" name="username" placeholder="Username" required />
     <input type="password" name="password" placeholder="Password" required />
-    <button type="submit">Sign In</button>
-    <div class="footer">
-      © 2025 Slickofficials HQ | Amson Multi Global Ltd – All Rights Reserved.
-    </div>
+    <button type="submit">Access Dashboard</button>
+    <div class="footer">© 2025 Slickofficials HQ</div>
   </form>
 </body>
 </html>
