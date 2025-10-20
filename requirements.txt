@@ -1,7 +1,21 @@
-flask
-flask_sqlalchemy
-gunicorn
-python-dotenv
-apscheduler
-requests
-psycopg2-binary
+# Core Web Framework
+Flask==3.0.3
+
+# Database ORM
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.30
+psycopg2-binary==2.9.9
+
+# API & HTTP
+requests==2.32.3
+
+# Authentication & Security
+python-dotenv==1.0.1
+itsdangerous==2.2.0
+
+# Server
+gunicorn==22.0.0
+
+# Optional Utilities
+Werkzeug==3.0.3
+Jinja2==3.1.4
