@@ -4,3 +4,4 @@ gunicorn
 python-dotenv
 apscheduler
 requests
+psycopg2-binary
