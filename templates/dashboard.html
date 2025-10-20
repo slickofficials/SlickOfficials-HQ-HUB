@@ -2,137 +2,132 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Affiliate Dashboard</title>
+  <title>Slickofficials HQ – Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: #f3f4f6;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at center, #0d0020, #000010 90%);
+      color: #fff;
       margin: 0;
-      padding: 0;
+      min-height: 100vh;
     }
-    .navbar {
-      background: #111827;
-      color: white;
-      padding: 15px 25px;
+    header {
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      padding: 1rem 2rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      box-shadow: 0 0 25px #00ffff55;
     }
-    .navbar h2 {
+    header h1 {
       margin: 0;
-      font-size: 20px;
+      font-size: 22px;
+      letter-spacing: 1px;
     }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: white;
-      padding: 25px 30px;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
-    }
-    .btn {
-      display: inline-block;
-      background: #2563eb;
+    header a {
       color: white;
-      border: none;
-      padding: 10px 20px;
+      text-decoration: none;
+      background: rgba(255,255,255,0.1);
+      padding: 6px 12px;
       border-radius: 6px;
-      cursor: pointer;
-      font-size: 15px;
-      margin-top: 10px;
-      transition: 0.2s ease;
+      transition: 0.3s;
     }
-    .btn:hover {
-      background: #1d4ed8;
+    header a:hover {
+      background: rgba(255,255,255,0.25);
     }
-    .section {
-      margin-bottom: 30px;
+
+    .container {
+      padding: 2rem;
     }
-    h3 {
-      color: #111827;
-      border-bottom: 2px solid #2563eb;
+
+    .quick-actions {
+      background: rgba(15, 0, 40, 0.85);
+      border: 1px solid #00ffff55;
+      border-radius: 12px;
+      box-shadow: 0 0 25px #00ffff33;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    .quick-actions h3 {
+      margin-top: 0;
+      color: #00eaff;
+      letter-spacing: 1px;
+    }
+
+    .action-button {
       display: inline-block;
-      padding-bottom: 3px;
+      margin: 0.5rem;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #00c6ff, #0072ff);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      box-shadow: 0 0 15px #00ffff55;
+      transition: 0.3s ease;
     }
-    pre {
-      background: #f9fafb;
-      padding: 15px;
-      border-radius: 6px;
-      font-size: 14px;
-      overflow-x: auto;
-      max-height: 400px;
-      border: 1px solid #e5e7eb;
+    .action-button:hover {
+      background: linear-gradient(90deg, #00eaff, #00c3ff);
+      box-shadow: 0 0 25px #00ffffaa;
+      transform: scale(1.05);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+      background: rgba(15, 0, 40, 0.6);
+      box-shadow: 0 0 15px #00ffff33;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #00ffff22;
+    }
+    th {
+      text-align: left;
+      color: #00eaff;
+    }
+    tr:hover {
+      background: rgba(0,255,255,0.05);
     }
   </style>
 </head>
 <body>
-  <div class="navbar">
-    <h2>Affiliate Automation Dashboard</h2>
-    <a href="/logout" style="color: white; text-decoration: none;">Logout</a>
-  </div>
+  <header>
+    <h1>🚀 Slickofficials HQ</h1>
+    <div>
+      <a href="/create_post" class="action-button">+ Create Post</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
 
   <div class="container">
-    <div class="section">
-      <h3>🧩 Test Publer Integration</h3>
-      <p>Run a live test to confirm your Publer API connection.</p>
-      <button class="btn" onclick="testPubler()">Run Publer Test</button>
-      <pre id="publerOutput">Waiting for test...</pre>
+    <div class="quick-actions">
+      <h3>⚡ Quick Actions</h3>
+      <a href="/test_publer" class="action-button">Test Publer</a>
+      <a href="/get_recent_posts" class="action-button">Recent Posts (JSON)</a>
+      <a href="/get_affiliate_stats" class="action-button">Affiliate Stats (JSON)</a>
     </div>
 
-    <div class="section">
-      <h3>📊 Check Analytics</h3>
-      <p>Pull recent affiliate analytics from your database.</p>
-      <button class="btn" onclick="checkAnalytics()">Check Analytics</button>
-      <pre id="analyticsOutput">No data yet...</pre>
-    </div>
-
-    <div class="section">
-      <h3>🕓 Scheduled Automation</h3>
-      <p>Automatically fetches and posts data every 6 hours. No manual work needed.</p>
-    </div>
-
-    <div class="section">
-      <h3>📰 Recent Publer Posts</h3>
-      <p>Preview your last few posts from Publer (optional future feature).</p>
-      <button class="btn" onclick="getRecentPosts()">Show Recent Posts</button>
-      <pre id="recentPostsOutput">No recent posts yet...</pre>
-    </div>
+    <h2>Recent Posts</h2>
+    {% if posts %}
+    <table>
+      <tr><th>Platform</th><th>Content</th><th>Status</th></tr>
+      {% for post in posts %}
+      <tr>
+        <td>{{ post.platform }}</td>
+        <td>{{ post.content }}</td>
+        <td>{{ post.status }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% else %}
+    <p>No posts yet. <a href="/create_post" class="action-button">Create one</a>.</p>
+    {% endif %}
   </div>
-
-  <script>
-    async function testPubler() {
-      document.getElementById("publerOutput").textContent = "Running Publer test...";
-      try {
-        const res = await fetch("/test-publer");
-        const data = await res.json();
-        document.getElementById("publerOutput").textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        document.getElementById("publerOutput").textContent = "❌ Error: " + err;
-      }
-    }
-
-    async function checkAnalytics() {
-      document.getElementById("analyticsOutput").textContent = "Fetching analytics...";
-      try {
-        const res = await fetch("/get-analytics");
-        const data = await res.json();
-        document.getElementById("analyticsOutput").textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        document.getElementById("analyticsOutput").textContent = "❌ Error: " + err;
-      }
-    }
-
-    async function getRecentPosts() {
-      document.getElementById("recentPostsOutput").textContent = "Loading recent posts...";
-      try {
-        const res = await fetch("/recent-posts");
-        const data = await res.json();
-        document.getElementById("recentPostsOutput").textContent = JSON.stringify(data, null, 2);
-      } catch (err) {
-        document.getElementById("recentPostsOutput").textContent = "❌ Error: " + err;
-      }
-    }
-  </script>
 </body>
 </html>
