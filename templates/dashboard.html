@@ -1,133 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Slickofficials HQ – Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at center, #0d0020, #000010 90%);
-      color: #fff;
-      margin: 0;
-      min-height: 100vh;
-    }
-    header {
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      padding: 1rem 2rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 0 25px #00ffff55;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 22px;
-      letter-spacing: 1px;
-    }
-    header a {
-      color: white;
-      text-decoration: none;
-      background: rgba(255,255,255,0.1);
-      padding: 6px 12px;
-      border-radius: 6px;
-      transition: 0.3s;
-    }
-    header a:hover {
-      background: rgba(255,255,255,0.25);
-    }
-
-    .container {
-      padding: 2rem;
-    }
-
-    .quick-actions {
-      background: rgba(15, 0, 40, 0.85);
-      border: 1px solid #00ffff55;
-      border-radius: 12px;
-      box-shadow: 0 0 25px #00ffff33;
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-    .quick-actions h3 {
-      margin-top: 0;
-      color: #00eaff;
-      letter-spacing: 1px;
-    }
-
-    .action-button {
-      display: inline-block;
-      margin: 0.5rem;
-      padding: 12px 20px;
-      background: linear-gradient(90deg, #00c6ff, #0072ff);
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      text-decoration: none;
-      box-shadow: 0 0 15px #00ffff55;
-      transition: 0.3s ease;
-    }
-    .action-button:hover {
-      background: linear-gradient(90deg, #00eaff, #00c3ff);
-      box-shadow: 0 0 25px #00ffffaa;
-      transform: scale(1.05);
-    }
-
-    table {
-      width: 100%;
-      margin-top: 1.5rem;
-      border-collapse: collapse;
-      background: rgba(15, 0, 40, 0.6);
-      box-shadow: 0 0 15px #00ffff33;
-    }
-    th, td {
-      padding: 12px;
-      border-bottom: 1px solid #00ffff22;
-    }
-    th {
-      text-align: left;
-      color: #00eaff;
-    }
-    tr:hover {
-      background: rgba(0,255,255,0.05);
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slickofficials HQ Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap');
+body {
+  margin: 0;
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at 50% 50%, #080d1a, #000);
+  color: #00ffff;
+  overflow-x: hidden;
+}
+header {
+  padding: 20px;
+  background: linear-gradient(90deg, #001122, #002244);
+  text-align: center;
+  box-shadow: 0 0 20px #00ffff33;
+}
+h1 {
+  color: #00e0ff;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+button {
+  background: linear-gradient(90deg, #00ffff, #0077ff);
+  border: none;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  color: #0b0f17;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  background: linear-gradient(90deg, #0077ff, #00ffff);
+  box-shadow: 0 0 15px #00ffffaa;
+}
+table {
+  width: 80%;
+  margin: 20px auto;
+  border-collapse: collapse;
+  text-align: left;
+}
+th, td {
+  border-bottom: 1px solid #00ffff33;
+  padding: 10px;
+}
+th {
+  color: #00e0ff;
+}
+footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #0077ff;
+}
+</style>
 </head>
 <body>
   <header>
-    <h1>🚀 Slickofficials HQ</h1>
-    <div>
-      <a href="/create_post" class="action-button">+ Create Post</a>
-      <a href="/logout">Logout</a>
-    </div>
+    <h1>⚙️ Slickofficials HQ Dashboard</h1>
   </header>
 
-  <div class="container">
-    <div class="quick-actions">
-      <h3>⚡ Quick Actions</h3>
-      <a href="/test_publer" class="action-button">Test Publer</a>
-      <a href="/get_recent_posts" class="action-button">Recent Posts (JSON)</a>
-      <a href="/get_affiliate_stats" class="action-button">Affiliate Stats (JSON)</a>
-    </div>
-
-    <h2>Recent Posts</h2>
-    {% if posts %}
-    <table>
-      <tr><th>Platform</th><th>Content</th><th>Status</th></tr>
-      {% for post in posts %}
-      <tr>
-        <td>{{ post.platform }}</td>
-        <td>{{ post.content }}</td>
-        <td>{{ post.status }}</td>
-      </tr>
-      {% endfor %}
-    </table>
-    {% else %}
-    <p>No posts yet. <a href="/create_post" class="action-button">Create one</a>.</p>
-    {% endif %}
+  <div class="actions">
+    <form action="/test_publer"><button>🧩 Test Publer</button></form>
+    <form action="/json/analytics"><button>📊 JSON Analytics</button></form>
+    <form action="/logout"><button>🚪 Logout</button></form>
   </div>
+
+  <table>
+    <tr><th>Metric</th><th>Value</th><th>Created At</th></tr>
+    {% for a in analytics %}
+    <tr>
+      <td>{{ a.metric_name }}</td>
+      <td>{{ a.metric_value }}</td>
+      <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  <footer>© 2025 Slickofficials HQ | Powered by Amson Multi Global Ltd</footer>
 </body>
 </html>
