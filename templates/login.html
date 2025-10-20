@@ -3,150 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slickofficials HQ — Login</title>
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/static/images/favicon.png">
-
-  <!-- Fonts -->
+  <title>Slickofficials HQ Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-
   <style>
     body {
-      margin: 0;
-      padding: 0;
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(160deg, #05080f, #0a0f1f, #000000);
-      height: 100vh;
+      background: radial-gradient(circle at top, #0b0f1a, #000000);
+      color: #e0e0e0;
       display: flex;
-      align-items: center;
       justify-content: center;
-      color: #fff;
-      overflow: hidden;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
     }
-
-    .login-container {
-      background: rgba(15, 20, 35, 0.85);
-      backdrop-filter: blur(20px);
-      padding: 50px 40px;
-      border-radius: 16px;
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.15);
-      width: 380px;
-      text-align: center;
+    .login-box {
+      background: rgba(10, 20, 40, 0.8);
       border: 1px solid rgba(0, 255, 255, 0.15);
-      animation: floatIn 1.2s ease;
+      border-radius: 14px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
     }
-
-    @keyframes floatIn {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .logo {
-      width: 100px;
-      margin-bottom: 20px;
-      animation: glow 2.5s infinite alternate;
-    }
-
-    @keyframes glow {
-      from { filter: drop-shadow(0 0 3px #00eaff); }
-      to { filter: drop-shadow(0 0 12px #00eaff); }
-    }
-
-    h1 {
+    h2 {
       font-family: 'Orbitron', sans-serif;
       color: #00eaff;
-      margin-bottom: 25px;
-      font-size: 1.6rem;
-      letter-spacing: 1px;
+      margin-bottom: 20px;
     }
-
     input {
       width: 100%;
-      padding: 12px 15px;
+      padding: 12px;
       margin: 10px 0;
-      border-radius: 10px;
-      border: none;
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      background: #0a0f1f;
+      color: white;
       font-size: 0.95rem;
-      outline: none;
-      transition: 0.3s;
     }
-
-    input:focus {
-      box-shadow: 0 0 10px #00eaff;
-    }
-
     .password-container {
       position: relative;
     }
-
-    .eye-toggle {
+    .eye-icon {
       position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
+      right: 12px;
+      top: 35%;
       cursor: pointer;
       color: #00eaff;
-      font-size: 1.2rem;
-      user-select: none;
     }
-
     button {
-      background: linear-gradient(90deg, #00eaff, #0078ff);
-      color: #fff;
+      background: linear-gradient(90deg, #00c3ff, #0078ff);
       border: none;
-      padding: 12px 0;
-      border-radius: 10px;
+      color: white;
+      padding: 12px;
       width: 100%;
+      border-radius: 10px;
       font-weight: 600;
-      font-size: 1rem;
       margin-top: 15px;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: 0.3s;
     }
-
     button:hover {
       transform: scale(1.05);
       box-shadow: 0 0 20px #00eaff;
     }
-
-    footer {
-      margin-top: 20px;
-      font-size: 0.8rem;
-      color: #777;
-    }
-
-    footer strong {
+    a {
       color: #00eaff;
+      text-decoration: none;
+      font-size: 0.9rem;
+      display: block;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <div class="login-container">
-    <img src="/static/images/logo.png" alt="Slickofficials Logo" class="logo">
-    <h1>Enter HQ Access</h1>
-    <form action="/login" method="post">
+  <div class="login-box">
+    <h2>⚙️ Slickofficials HQ</h2>
+    <form method="POST">
       <input type="text" name="username" placeholder="Username" required>
-      
       <div class="password-container">
         <input type="password" id="password" name="password" placeholder="Password" required>
-        <span class="eye-toggle" onclick="togglePassword()">👁️</span>
+        <span class="eye-icon" onclick="togglePassword()">👁️</span>
       </div>
-      
-      <button type="submit">Access Dashboard</button>
+      <button type="submit">Login</button>
     </form>
-    <footer>
-      © 2025 <strong>Slickofficials HQ</strong><br>Powered by <strong>Amson Multi Global Ltd</strong>
-    </footer>
+    {% if error %}<p style="color: #ff5555;">{{ error }}</p>{% endif %}
+    <a href="{{ url_for('reset_password') }}">Forgot Password?</a>
   </div>
 
   <script>
     function togglePassword() {
-      const pwd = document.getElementById("password");
-      pwd.type = pwd.type === "password" ? "text" : "password";
+      const pw = document.getElementById('password');
+      pw.type = pw.type === 'password' ? 'text' : 'password';
     }
   </script>
 
