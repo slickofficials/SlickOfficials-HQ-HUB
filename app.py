@@ -1,165 +1,150 @@
-import os
-import secrets
-import requests
-from datetime import datetime, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from flask_sqlalchemy import SQLAlchemy
-from apscheduler.schedulers.background import BackgroundScheduler
-from dotenv import load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
+import os
+import smtplib
+from email.mime.text import MIMEText
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
-# ---------------- LOAD ENV ----------------
-load_dotenv()
-
+# -------------------- SETUP --------------------
 app = Flask(__name__)
-app.secret_key = os.getenv("APP_SECRET_KEY", "supersecretkey")
+app.secret_key = os.environ.get("APP_SECRET_KEY", "dev_secret_key")
 
-# ---------------- DATABASE CONFIG ----------------
-db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://")
-
-app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///slickofficials.db")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 db = SQLAlchemy(app)
 
-# ---------------- ENV KEYS ----------------
-PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
-PUBLER_WORKSPACE_ID = os.getenv("PUBLER_WORKSPACE_ID")
-ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@slickofficials.com")
+# For password reset tokens
+serializer = URLSafeTimedSerializer(app.secret_key)
 
-# ---------------- DATABASE MODELS ----------------
+# -------------------- MODELS --------------------
 class Analytics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     metric_name = db.Column(db.String(100))
     metric_value = db.Column(db.String(100))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+# -------------------- HELPERS --------------------
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME")
+ADMIN_PASSWORD_HASH = generate_password_hash(os.environ.get("ADMIN_PASSWORD", ""))
 
-class PasswordResetToken(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(100), unique=True)
-    email = db.Column(db.String(120))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+def is_logged_in():
+    return session.get("logged_in", False)
 
-# ---------------- PUBLER FETCH ----------------
-def fetch_publer_stats():
-    if not PUBLER_API_KEY or not PUBLER_WORKSPACE_ID:
-        print("Missing Publer credentials.")
-        return
-    headers = {"Authorization": f"Bearer {PUBLER_API_KEY}"}
-    url = f"https://api.publer.io/v1/workspaces/{PUBLER_WORKSPACE_ID}/posts"
+def send_reset_email(to_email, token):
+    """Send a password reset email with a secure token"""
+    smtp_server = os.environ.get("SMTP_SERVER")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_username = os.environ.get("SMTP_USERNAME")
+    smtp_password = os.environ.get("SMTP_PASSWORD")
+    email_from = os.environ.get("EMAIL_FROM", smtp_username)
+
+    reset_link = url_for('reset_with_token', token=token, _external=True)
+    subject = "Slickofficials HQ - Password Reset"
+    body = f"""
+    Hey Admin 👋,
+
+    You (or someone else) requested a password reset.
+    Click the link below to set a new password:
+
+    {reset_link}
+
+    If you didn’t request this, please ignore this email.
+    """
+
+    msg = MIMEText(body)
+    msg["Subject"] = subject
+    msg["From"] = email_from
+    msg["To"] = to_email
+
     try:
-        response = requests.get(url, headers=headers)
-        data = response.json()
-        count = len(data.get("data", []))
-        new_metric = Analytics(metric_name="Total Posts", metric_value=str(count))
-        db.session.add(new_metric)
-        db.session.commit()
-        print("✅ Publer stats updated successfully.")
+        with smtplib.SMTP(smtp_server, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_username, smtp_password)
+            server.send_message(msg)
+        print(f"✅ Reset email sent to {to_email}")
+        return True
     except Exception as e:
-        print("Error fetching Publer data:", e)
+        print(f"❌ Email send error: {e}")
+        return False
 
-# ---------------- SCHEDULER ----------------
-scheduler = BackgroundScheduler()
-scheduler.add_job(fetch_publer_stats, "interval", hours=3)
-scheduler.start()
-
-# ---------------- AUTH ROUTES ----------------
-@app.route("/", methods=["GET", "POST"])
-def login():
-    if request.method == "POST":
-        user = request.form["username"]
-        pwd = request.form["password"]
-        if user == ADMIN_USERNAME and pwd == ADMIN_PASSWORD:
-            session["user"] = user
-            return redirect(url_for("dashboard"))
-        flash("Invalid credentials, try again.", "error")
-    return render_template("login.html")
-
-@app.route("/logout")
-def logout():
-    session.pop("user", None)
-    return redirect(url_for("login"))
-
-# ---------------- FORGOT PASSWORD ----------------
-@app.route("/forgot_password", methods=["GET", "POST"])
-def forgot_password():
-    if request.method == "POST":
-        email = request.form["email"]
-        if email != ADMIN_EMAIL:
-            flash("Email not recognized.", "error")
-            return redirect(url_for("forgot_password"))
-
-        token = secrets.token_hex(16)
-        reset_entry = PasswordResetToken(token=token, email=email)
-        db.session.add(reset_entry)
-        db.session.commit()
-        reset_link = url_for("reset_with_token", token=token, _external=True)
-        print(f"🔐 Password reset link: {reset_link}")  # Normally sent via email
-        flash("Password reset link generated! Check console/logs.", "info")
-        return redirect(url_for("login"))
-
-    return render_template("forgot_password.html")
-
-# ---------------- RESET PASSWORD ----------------
-@app.route("/reset/<token>", methods=["GET", "POST"])
-def reset_with_token(token):
-    reset_token = PasswordResetToken.query.filter_by(token=token).first()
-    if not reset_token:
-        flash("Invalid or expired token.", "error")
-        return redirect(url_for("login"))
-
-    if datetime.utcnow() - reset_token.created_at > timedelta(hours=2):
-        db.session.delete(reset_token)
-        db.session.commit()
-        flash("Token expired, please request a new one.", "error")
-        return redirect(url_for("forgot_password"))
-
-    if request.method == "POST":
-        pwd = request.form["password"]
-        confirm_pwd = request.form["confirm_password"]
-        if pwd != confirm_pwd:
-            flash("Passwords do not match.", "error")
-            return redirect(url_for("reset_with_token", token=token))
-
-        os.environ["ADMIN_PASSWORD"] = pwd
-        db.session.delete(reset_token)
-        db.session.commit()
-        flash("Password successfully reset! You can log in now.", "success")
-        return redirect(url_for("login"))
-
-    return render_template("reset_with_token.html")
-
-# ---------------- DASHBOARD ----------------
-@app.route("/dashboard")
-def dashboard():
-    if "user" not in session:
+# -------------------- ROUTES --------------------
+@app.route("/")
+def home():
+    if not is_logged_in():
         return redirect(url_for("login"))
     analytics = Analytics.query.order_by(Analytics.created_at.desc()).limit(10).all()
     return render_template("dashboard.html", analytics=analytics)
 
-# ---------------- JSON ENDPOINTS ----------------
-@app.route("/test_publer")
-def test_publer():
-    if not PUBLER_API_KEY or not PUBLER_WORKSPACE_ID:
-        return jsonify({"error": "Missing Publer credentials."}), 400
-    headers = {"Authorization": f"Bearer {PUBLER_API_KEY}"}
-    url = f"https://api.publer.io/v1/workspaces/{PUBLER_WORKSPACE_ID}/posts"
-    r = requests.get(url, headers=headers)
-    return jsonify(r.json())
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session["logged_in"] = True
+            flash("Welcome back, Admin!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Invalid credentials.", "danger")
+    return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.clear()
+    flash("Logged out successfully.", "info")
+    return redirect(url_for("login"))
+
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    if request.method == "POST":
+        email = request.form["email"]
+        if email:
+            token = serializer.dumps(email, salt="password-reset")
+            if send_reset_email(email, token):
+                flash("Password reset email sent! Check your inbox.", "info")
+                return redirect(url_for("login"))
+            else:
+                flash("Failed to send email. Check SMTP settings.", "danger")
+    return render_template("forgot_password.html")
+
+@app.route("/reset_password/<token>", methods=["GET", "POST"])
+def reset_with_token(token):
+    try:
+        email = serializer.loads(token, salt="password-reset", max_age=3600)
+    except (SignatureExpired, BadSignature):
+        flash("Invalid or expired link.", "danger")
+        return redirect(url_for("forgot_password"))
+
+    if request.method == "POST":
+        new_password = request.form["new_password"]
+        os.environ["ADMIN_PASSWORD"] = new_password
+        flash("Password reset successful!", "success")
+        return redirect(url_for("login"))
+
+    return render_template("reset_password.html")
 
 @app.route("/json/analytics")
-def json_analytics():
-    all_data = Analytics.query.all()
-    return jsonify([
-        {"metric": a.metric_name, "value": a.metric_value, "created": a.created_at.isoformat()}
-        for a in all_data
-    ])
+def analytics_json():
+    if not is_logged_in():
+        return jsonify({"error": "Unauthorized"}), 403
+    data = [
+        {"metric_name": a.metric_name, "metric_value": a.metric_value, "created_at": a.created_at}
+        for a in Analytics.query.all()
+    ]
+    return jsonify(data)
 
-# ---------------- INIT ----------------
+@app.route("/test_publer")
+def test_publer():
+    if not is_logged_in():
+        return jsonify({"error": "Unauthorized"}), 403
+    return jsonify({"status": "Publer connection test successful!"})
+
+# -------------------- MAIN --------------------
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    app.run(debug=True)
