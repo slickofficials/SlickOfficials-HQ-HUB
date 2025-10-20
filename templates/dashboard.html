@@ -1,169 +1,273 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Slickofficials HQ Dashboard</title>
-    <style>
-        body {
-            background: radial-gradient(circle at top left, #0d0d1a, #000);
-            color: #d6e3ff;
-            font-family: "Poppins", sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        header {
-            background: linear-gradient(90deg, #0f0038, #220061, #007bff);
-            padding: 1.5rem 2rem;
-            color: #00fff7;
-            font-size: 1.5rem;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .user {
-            color: #9effff;
-            font-size: 1rem;
-        }
-        main {
-            padding: 2rem;
-        }
-        h1 {
-            color: #00fff7;
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        .stats {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-        .card {
-            background: rgba(30, 30, 50, 0.6);
-            border: 1px solid #007bff;
-            border-radius: 10px;
-            padding: 1.2rem 1.5rem;
-            width: 230px;
-            box-shadow: 0 0 12px rgba(0, 255, 255, 0.2);
-            transition: transform 0.2s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
-        }
-        .card h2 {
-            color: #9effff;
-            font-size: 1.1rem;
-        }
-        .card p {
-            color: #fff;
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-        .actions {
-            margin-top: 2rem;
-        }
-        .actions button {
-            background: linear-gradient(90deg, #0044ff, #00ccff);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.2rem;
-            border-radius: 8px;
-            margin: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-        .actions button:hover {
-            background: linear-gradient(90deg, #007bff, #00ffff);
-            transform: translateY(-3px);
-        }
-        table {
-            margin-top: 2rem;
-            width: 100%;
-            border-collapse: collapse;
-            color: #b0d0ff;
-        }
-        th, td {
-            border-bottom: 1px solid #007bff;
-            padding: 0.8rem 0.5rem;
-            text-align: left;
-        }
-        th {
-            color: #00fff7;
-        }
-        footer {
-            text-align: center;
-            margin-top: 3rem;
-            font-size: 0.85rem;
-            color: #666;
-        }
-    </style>
-    <script>
-        async function quickAction(endpoint) {
-            const res = await fetch(endpoint);
-            const data = await res.json();
-            alert(JSON.stringify(data, null, 2));
-        }
-    </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slickofficials HQ Dashboard</title>
+  <style>
+    body {
+      background: radial-gradient(circle at 20% 30%, #0b001a, #080016 80%);
+      color: #e0e0e0;
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: rgba(15, 5, 40, 0.9);
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 0 15px #00eaff33;
+    }
+    h1 {
+      color: #00eaff;
+      margin: 0;
+      font-size: 24px;
+    }
+    a.logout {
+      color: #ff4b4b;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a.logout:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 40px;
+    }
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    .card {
+      flex: 1;
+      background: rgba(20, 10, 40, 0.95);
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 15px #00ffff33;
+      text-align: center;
+      min-width: 250px;
+    }
+    .card h2 {
+      margin: 0;
+      color: #00eaff;
+    }
+    .card p {
+      margin: 10px 0 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    /* Quick Actions */
+    .actions {
+      background: rgba(25, 10, 60, 0.9);
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 40px;
+      box-shadow: 0 0 25px #00ffff33;
+      text-align: center;
+    }
+    .actions h3 {
+      color: #00eaff;
+      margin-bottom: 20px;
+      font-size: 20px;
+    }
+    .actions button {
+      background: linear-gradient(135deg, #00eaff, #5a00ff);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-size: 15px;
+      padding: 12px 25px;
+      margin: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 0 12px #00eaff66;
+    }
+    .actions button:hover {
+      box-shadow: 0 0 25px #00ffffaa;
+      transform: scale(1.03);
+    }
+
+    /* Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(25, 15, 55, 0.95);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+    }
+    th {
+      background: #111133;
+      color: #00eaff;
+    }
+    tr:nth-child(even) {
+      background: #16163a;
+    }
+    tr:hover {
+      background: #1e1e4f;
+    }
+
+    /* Modal (Popup Box) */
+    #modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 20, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+    #modal.show {
+      display: flex;
+      opacity: 1;
+    }
+    .modal-content {
+      background: rgba(20, 10, 60, 0.95);
+      border: 1px solid #00eaff;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 800px;
+      padding: 25px;
+      box-shadow: 0 0 40px #00eaff55;
+      color: #e0e0e0;
+      overflow-y: auto;
+      max-height: 80vh;
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+    #modal.show .modal-content {
+      transform: scale(1);
+    }
+    .modal-content pre {
+      white-space: pre-wrap;
+      font-size: 14px;
+      background: #0b0020;
+      padding: 15px;
+      border-radius: 6px;
+      box-shadow: inset 0 0 10px #00eaff33;
+      color: #00ffff;
+    }
+    .close-btn {
+      background: #ff4b4b;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      padding: 8px 16px;
+      cursor: pointer;
+      float: right;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .close-btn:hover {
+      background: #ff2a2a;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 13px;
+      color: #777;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <span>Slickofficials HQ Dashboard</span>
-        <span class="user">👋 Welcome, {{ user }} | <a href="{{ url_for('logout') }}" style="color:#00fff7;text-decoration:none;">Logout</a></span>
-    </header>
+  <header>
+    <h1>🚀 Slickofficials HQ Dashboard</h1>
+    <a href="{{ url_for('logout') }}" class="logout">Logout</a>
+  </header>
 
-    <main>
-        <h1>Performance Overview</h1>
-        <div class="stats">
-            <div class="card">
-                <h2>Total Clicks</h2>
-                <p>{{ total_clicks }}</p>
-            </div>
-            <div class="card">
-                <h2>Total Revenue</h2>
-                <p>${{ "%.2f"|format(total_revenue) }}</p>
-            </div>
-        </div>
+  <main>
+    <div class="stats">
+      <div class="card">
+        <h2>Total Clicks</h2>
+        <p>{{ total_clicks }}</p>
+      </div>
+      <div class="card">
+        <h2>Total Revenue ($)</h2>
+        <p>{{ total_revenue }}</p>
+      </div>
+    </div>
 
-        <div class="actions">
-            <h2 style="color:#00fff7;">⚡ Quick Actions</h2>
-            <button onclick="quickAction('/test-publer')">Test Publer</button>
-            <button onclick="quickAction('/recent-posts')">JSON: Recent Posts</button>
-            <button onclick="quickAction('/affiliate-stats')">JSON: Affiliate Stats</button>
-        </div>
+    <!-- Quick Actions -->
+    <div class="actions">
+      <h3>⚡ Quick Actions</h3>
+      <button onclick="runAction('/test_publer')">Test Publer</button>
+      <button onclick="runAction('/json_posts')">JSON: Recent Posts</button>
+      <button onclick="runAction('/json_affiliates')">JSON: Affiliate Stats</button>
+    </div>
 
-        <table>
-            <thead>
-                <tr>
-                    <th>Platform</th>
-                    <th>Clicks</th>
-                    <th>Impressions</th>
-                    <th>Conversions</th>
-                    <th>Revenue</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in analytics %}
-                <tr>
-                    <td>{{ row.platform }}</td>
-                    <td>{{ row.clicks }}</td>
-                    <td>{{ row.impressions }}</td>
-                    <td>{{ row.conversions }}</td>
-                    <td>${{ "%.2f"|format(row.revenue) }}</td>
-                    <td>{{ row.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </main>
+    <!-- Analytics Table -->
+    <table>
+      <tr>
+        <th>Platform</th>
+        <th>Clicks</th>
+        <th>Impressions</th>
+        <th>Conversions</th>
+        <th>Revenue ($)</th>
+        <th>Date</th>
+      </tr>
+      {% for item in analytics %}
+      <tr>
+        <td>{{ item.platform }}</td>
+        <td>{{ item.clicks }}</td>
+        <td>{{ item.impressions }}</td>
+        <td>{{ item.conversions }}</td>
+        <td>{{ item.revenue }}</td>
+        <td>{{ item.date.strftime('%Y-%m-%d %H:%M') }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </main>
 
-    <footer>
-        <p>© 2025 Slickofficials HQ | All Rights Reserved.<br>
-           All trademarks and digital systems under <strong>Slickofficials HQ</strong> are proprietary to <strong>Amson Multi Global Ltd</strong>.
-        </p>
-    </footer>
+  <!-- Modal -->
+  <div id="modal">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()">Close</button>
+      <h3 id="modal-title"></h3>
+      <pre id="modal-output">Loading...</pre>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 Slickofficials HQ | Amson Multi Global Ltd – All Rights Reserved.
+  </footer>
+
+  <script>
+    async function runAction(endpoint) {
+      const modal = document.getElementById("modal");
+      modal.classList.add("show");
+      modal.style.display = "flex";
+      document.getElementById("modal-title").textContent = "Running: " + endpoint;
+      document.getElementById("modal-output").textContent = "Loading...";
+      try {
+        const response = await fetch(endpoint);
+        const text = await response.text();
+        let formatted;
+        try {
+          formatted = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+          formatted = text;
+        }
+        document.getElementById("modal-output").textContent = formatted;
+      } catch (error) {
+        document.getElementById("modal-output").textContent = "Error: " + error;
+      }
+    }
+    function closeModal() {
+      const modal = document.getElementById("modal");
+      modal.classList.remove("show");
+      setTimeout(() => modal.style.display = "none", 400);
+    }
+  </script>
 </body>
 </html>
