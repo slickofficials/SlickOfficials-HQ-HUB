@@ -16,16 +16,21 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "supersecretkey")
 
-# Database setup
+# ---------------- DATABASE CONFIG ----------------
 db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
+
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
+# ---------------- ENV VARIABLES ----------------
 PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
 PUBLER_WORKSPACE_ID = os.getenv("PUBLER_WORKSPACE_ID")
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL")
+ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "password")
 
 # ---------------- DATABASE MODELS ----------------
 class Analytics(db.Model):
@@ -36,6 +41,9 @@ class Analytics(db.Model):
 
 # ---------------- PUBLER FETCH ----------------
 def fetch_publer_stats():
+    if not PUBLER_API_KEY or not PUBLER_WORKSPACE_ID:
+        print("⚠️ Missing Publer credentials, skipping fetch.")
+        return
     headers = {"Authorization": f"Bearer {PUBLER_API_KEY}"}
     url = f"https://api.publer.io/v1/workspaces/{PUBLER_WORKSPACE_ID}/posts"
     try:
@@ -45,8 +53,9 @@ def fetch_publer_stats():
         new_metric = Analytics(metric_name="Total Posts", metric_value=str(count))
         db.session.add(new_metric)
         db.session.commit()
+        print(f"✅ Publer stats fetched — {count} posts saved.")
     except Exception as e:
-        print("Error fetching Publer data:", e)
+        print("❌ Error fetching Publer data:", e)
 
 # ---------------- SCHEDULER ----------------
 scheduler = BackgroundScheduler()
@@ -91,14 +100,13 @@ def login():
     if request.method == "POST":
         user = request.form["username"]
         pwd = request.form["password"]
-        admin_user = os.getenv("ADMIN_USERNAME", "admin")
-        admin_pass = os.getenv("ADMIN_PASSWORD", "password")
 
-        if user == admin_user and pwd == admin_pass:
+        if user == ADMIN_USERNAME and pwd == ADMIN_PASSWORD:
             session["user"] = user
             return redirect(url_for("dashboard"))
         else:
             flash("Invalid login. Try again.", "danger")
+
     return render_template("login.html")
 
 @app.route("/logout")
@@ -112,12 +120,12 @@ def logout():
 def forgot_password():
     if request.method == "POST":
         email = request.form.get("email")
-        admin_email = os.getenv("ADMIN_EMAIL")
 
-        if email == admin_email:
+        if email == ADMIN_EMAIL:
             send_reset_email(email)
         else:
             flash("Unauthorized email.", "danger")
+
     return render_template("forgot_password.html")
 
 # ---------------- RESET PASSWORD ----------------
@@ -133,11 +141,11 @@ def reset_password(token):
 
     if request.method == "POST":
         new_password = request.form.get("password")
-        # Here we only allow admin password to change (since single admin)
-        if email == os.getenv("ADMIN_EMAIL"):
+        if email == ADMIN_EMAIL:
             os.environ["ADMIN_PASSWORD"] = new_password
             flash("Admin password reset successfully.", "success")
             return redirect(url_for("login"))
+
     return render_template("reset_password.html")
 
 # ---------------- DASHBOARD ----------------
@@ -145,7 +153,16 @@ def reset_password(token):
 def dashboard():
     if "user" not in session:
         return redirect(url_for("login"))
+
     analytics = Analytics.query.order_by(Analytics.created_at.desc()).limit(10).all()
+
+    # If table empty, show one test record automatically
+    if not analytics:
+        test_entry = Analytics(metric_name="Test Metric", metric_value="123")
+        db.session.add(test_entry)
+        db.session.commit()
+        analytics = [test_entry]
+
     return render_template("dashboard.html", analytics=analytics)
 
 # ---------------- QUICK ACTIONS ----------------
@@ -170,4 +187,8 @@ def json_analytics():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+        # Add test record if Analytics is empty
+        if Analytics.query.count() == 0:
+            db.session.add(Analytics(metric_name="Initial Setup", metric_value="0"))
+            db.session.commit()
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
