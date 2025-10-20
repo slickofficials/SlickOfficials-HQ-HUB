@@ -1,105 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Login | Slickofficials HQ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body {
-      background: radial-gradient(circle at top, #020617, #000);
-      font-family: 'Inter', sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      color: #fff;
-      margin: 0;
-    }
-    .login-box {
-      background: rgba(10, 20, 40, 0.85);
-      padding: 40px 50px;
-      border-radius: 12px;
-      text-align: center;
-      width: 350px;
-      box-shadow: 0 0 25px rgba(0, 238, 255, 0.2);
-      border: 1px solid rgba(0, 255, 255, 0.15);
-    }
-    h1 {
-      font-family: 'Orbitron', sans-serif;
-      color: #00eaff;
-      font-size: 1.8rem;
-      margin-bottom: 20px;
-    }
-    input {
-      width: 100%;
-      padding: 10px 12px;
-      border: none;
-      outline: none;
-      border-radius: 6px;
-      background: #0f172a;
-      color: white;
-      margin-bottom: 15px;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 8px;
-      background: linear-gradient(90deg, #00eaff, #0078ff);
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 15px #00eaff;
-    }
-    .forgot-link {
-      display: block;
-      margin-top: 15px;
-      color: #00eaff;
-      font-size: 0.9rem;
-      text-decoration: none;
-    }
-    .forgot-link:hover {
-      text-decoration: underline;
-    }
-    .eye {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      cursor: pointer;
-      color: #00eaff;
-    }
-    .password-wrapper {
-      position: relative;
-    }
-    .error {
-      color: #ff4444;
-      margin-bottom: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Admin Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f111a;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        form {
+            background: #1a1c2b;
+            padding: 30px;
+            border-radius: 10px;
+            width: 320px;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: none;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #0056b3; }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 10px;
+            color: #61dafb;
+            text-decoration: none;
+        }
+        a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-  <form class="login-box" method="POST">
-    <h1>Admin Access</h1>
-    {% if error %}<div class="error">{{ error }}</div>{% endif %}
-    <input type="text" name="username" placeholder="Username" required>
-    <div class="password-wrapper">
-      <input type="password" id="password" name="password" placeholder="Password" required>
-      <span class="eye" onclick="togglePassword()">👁️</span>
-    </div>
-    <button type="submit">Login</button>
-    <a href="{{ url_for('forgot_password') }}" class="forgot-link">Forgot Password?</a>
-  </form>
-
-  <script>
-    function togglePassword() {
-      const pwd = document.getElementById("password");
-      pwd.type = pwd.type === "password" ? "text" : "password";
-    }
-  </script>
+    <form method="POST">
+        <h2>Admin Login</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <p style="color:{{ 'red' if category == 'danger' else 'lime' }}">{{ message }}</p>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+        <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+    </form>
 </body>
 </html>
