@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Password Reset | Slickofficials HQ</title>
+  <style>
+    body {
+      background-color: #0b0f1a;
+      font-family: 'Inter', sans-serif;
+      color: #e0e0e0;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      background: linear-gradient(145deg, #111827, #0a0f1f);
+      border: 1px solid rgba(0, 255, 255, 0.15);
+      border-radius: 10px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+      overflow: hidden;
+    }
+    .header {
+      background: #00eaff;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      color: #000;
+      font-family: 'Orbitron', sans-serif;
+    }
+    .content {
+      padding: 30px;
+      text-align: center;
+    }
+    .content p {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: linear-gradient(90deg, #00eaff, #0078ff);
+      color: #fff !important;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+    .btn:hover {
+      background: #00c3ff;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.85rem;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Slickofficials HQ</h1>
+    </div>
+    <div class="content">
+      <p>Hey Admin 👋,</p>
+      <p>We received a request to reset your password for <strong>Slickofficials HQ Dashboard</strong>.</p>
+      <p>If you didn’t request this, please ignore this email.</p>
+      <a href="{{ reset_link }}" class="btn">Reset My Password</a>
+      <p style="margin-top:20px;">This link will expire in 30 minutes for security reasons.</p>
+    </div>
+    <div class="footer">
+      <p>© 2025 Slickofficials HQ | Powered by Amson Multi Global Ltd</p>
+    </div>
+  </div>
+</body>
+</html>
