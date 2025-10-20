@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Neural Control System{% endblock %}</title>
+
+  <!-- Fonts & Style -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --accent: #00c6ff;
+      --accent-dark: #0072ff;
+      --bg-dark: #0f0f0f;
+      --bg-glass: rgba(255, 255, 255, 0.06);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle at 30% 20%, #121212, #000);
+      color: white;
+      overflow-x: hidden;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 22px 50px;
+      background: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+    }
+
+    header h1 {
+      font-size: 24px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header a {
+      text-decoration: none;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    header a:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0,198,255,0.4);
+    }
+
+    main {
+      padding: 40px 60px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+      opacity: 0.6;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: 60px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
+      padding: 12px 24px;
+      border-radius: 10px;
+      color: white;
+      font-weight: 500;
+      transition: 0.3s;
+    }
+
+    .btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(0,198,255,0.4);
+    }
+
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>🧠 Neural Control System</h1>
+    {% if session.get('user') %}
+    <a href="/logout">Logout</a>
+    {% endif %}
+  </header>
+
+  <main class="fade-in">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    Crafted with ⚙️ precision • {{ datetime.utcnow().year if datetime else "2025" }}
+  </footer>
+</body>
+</html>
