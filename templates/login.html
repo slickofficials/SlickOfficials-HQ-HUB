@@ -1,90 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login | Slickofficials HQ</title>
-    <style>
-        body {
-            background: radial-gradient(circle at top left, #050014, #000);
-            color: #d6e3ff;
-            font-family: "Poppins", sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background: rgba(20, 20, 40, 0.85);
-            padding: 2rem 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
-            text-align: center;
-            width: 340px;
-        }
-        h1 {
-            color: #00fff7;
-            margin-bottom: 1rem;
-            font-size: 1.7rem;
-        }
-        input {
-            width: 100%;
-            padding: 0.8rem;
-            margin-bottom: 1rem;
-            background: #0d0d1a;
-            border: 1px solid #00aaff;
-            border-radius: 8px;
-            color: #d6e3ff;
-            font-size: 1rem;
-        }
-        input:focus {
-            outline: none;
-            border-color: #00fff7;
-            box-shadow: 0 0 8px #00fff7;
-        }
-        button {
-            background: linear-gradient(90deg, #0044ff, #00ccff);
-            border: none;
-            width: 100%;
-            padding: 0.8rem;
-            border-radius: 8px;
-            font-size: 1rem;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s ease;
-        }
-        button:hover {
-            background: linear-gradient(90deg, #007bff, #00ffff);
-            transform: translateY(-3px);
-        }
-        .flash {
-            color: #ff4f81;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-        footer {
-            margin-top: 2rem;
-            font-size: 0.8rem;
-            color: #777;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slickofficials HQ Login</title>
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at 20% 30%, #0d0221, #0b001a 80%);
+      font-family: "Poppins", sans-serif;
+      color: #e0e0e0;
+    }
+    .login-container {
+      background: rgba(20, 10, 40, 0.95);
+      border: 1px solid #1a1a3d;
+      border-radius: 12px;
+      box-shadow: 0 0 25px #00ffff33;
+      padding: 40px;
+      width: 360px;
+      text-align: center;
+    }
+    h1 {
+      color: #00eaff;
+      margin-bottom: 30px;
+      letter-spacing: 1px;
+    }
+    input {
+      width: 90%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 6px;
+      background: #161636;
+      color: #e0e0e0;
+      font-size: 15px;
+      outline: none;
+      transition: 0.3s;
+    }
+    input:focus {
+      box-shadow: 0 0 10px #00eaff88;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      background: linear-gradient(135deg, #00eaff, #5a00ff);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      opacity: 0.9;
+      box-shadow: 0 0 20px #00eaff88;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
 </head>
 <body>
-    <form class="login-container" method="POST">
-        <h1>🔐 Slickofficials HQ</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <input type="text" name="username" placeholder="Username" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit">Login</button>
-        <footer>© 2025 Slickofficials HQ | Amson Multi Global Ltd</footer>
-    </form>
+  <form method="POST" class="login-container">
+    <h1>🔐 Slickofficials HQ</h1>
+    <input type="text" name="username" placeholder="Username" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Sign In</button>
+    <div class="footer">
+      © 2025 Slickofficials HQ | Amson Multi Global Ltd – All Rights Reserved.
+    </div>
+  </form>
 </body>
 </html>
