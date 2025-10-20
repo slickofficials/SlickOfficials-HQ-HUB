@@ -1,83 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Slickofficials HQ – Login</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
-    body {
-      font-family: 'Orbitron', sans-serif;
-      background: linear-gradient(135deg, #0a0124, #1a0033);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .login-container {
-      background: rgba(20, 0, 50, 0.85);
-      border: 1px solid #00ffff;
-      border-radius: 12px;
-      padding: 40px;
-      width: 350px;
-      box-shadow: 0 0 25px #00ffff33;
-    }
-    h1 {
-      text-align: center;
-      color: #00ffff;
-      margin-bottom: 30px;
-      letter-spacing: 2px;
-    }
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 10px 14px;
-      margin: 10px 0;
-      border: 1px solid #00ffff66;
-      border-radius: 8px;
-      background: #100028;
-      color: #fff;
-      font-size: 15px;
-    }
-    input:focus {
-      outline: none;
-      border-color: #00ffff;
-      box-shadow: 0 0 10px #00ffff88;
-    }
-    button {
-      width: 100%;
-      padding: 12px;
-      background: linear-gradient(90deg, #00ffff, #7a00ff);
-      border: none;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      color: #fff;
-      letter-spacing: 1px;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: linear-gradient(90deg, #7a00ff, #00ffff);
-      box-shadow: 0 0 15px #00ffffaa;
-    }
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #888;
-      margin-top: 25px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Slickofficials HQ Login</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at 50% 50%, #0b0f17, #05070d);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Orbitron', sans-serif;
+  color: #00ffff;
+  overflow: hidden;
+}
+.login-container {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 25px #00ffff66;
+  padding: 40px;
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  width: 300px;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+h2 {
+  font-size: 1.5rem;
+  color: #00e0ff;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
+input {
+  background: transparent;
+  border: 1px solid #00ffff66;
+  color: #00ffff;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  width: 100%;
+  outline: none;
+}
+button {
+  background: linear-gradient(90deg, #00ffff, #0077ff);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  width: 100%;
+  color: #0b0f17;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+button:hover {
+  background: linear-gradient(90deg, #0077ff, #00ffff);
+  box-shadow: 0 0 15px #00ffffaa;
+}
+footer {
+  position: absolute;
+  bottom: 10px;
+  font-size: 0.7rem;
+  color: #0077ff;
+  opacity: 0.7;
+}
+</style>
 </head>
 <body>
-  <form class="login-container" method="POST" action="/login">
-    <h1>Slickofficials HQ</h1>
-    <input type="text" name="username" placeholder="Username" required />
-    <input type="password" name="password" placeholder="Password" required />
-    <button type="submit">Access Dashboard</button>
-    <div class="footer">© 2025 Slickofficials HQ</div>
-  </form>
+  <div class="login-container">
+    <h2>ENTER MACHINE WORLD</h2>
+    <form method="POST">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Access HQ</button>
+    </form>
+    {% if error %}
+    <p style="color: #ff0080;">{{ error }}</p>
+    {% endif %}
+  </div>
+  <footer>© 2025 Slickofficials HQ | All Rights Reserved.</footer>
 </body>
 </html>
