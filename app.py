@@ -1,17 +1,17 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
-from sqlalchemy import inspect, text
+import requests
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "fallback_secret")
 
-# ---------------- Database Configuration ---------------- #
+# ---------------- Database ---------------- #
 db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
@@ -30,37 +30,21 @@ class Analytics(db.Model):
     revenue = db.Column(db.Float)
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
-# ---------------- DB Auto-Healing ---------------- #
-def ensure_columns_exist():
-    """Ensures all expected columns exist in the Analytics table."""
-    with app.app_context():
-        inspector = inspect(db.engine)
-        columns = [col["name"] for col in inspector.get_columns("analytics")]
-
-        required_columns = {
-            "platform": "TEXT",
-            "clicks": "INTEGER",
-            "impressions": "INTEGER",
-            "conversions": "INTEGER",
-            "revenue": "FLOAT",
-            "date": "TIMESTAMP"
-        }
-
-        for col_name, col_type in required_columns.items():
-            if col_name not in columns:
-                try:
-                    db.session.execute(text(f"ALTER TABLE analytics ADD COLUMN {col_name} {col_type};"))
-                    db.session.commit()
-                    print(f"✅ Added missing column: {col_name}")
-                except Exception as e:
-                    print(f"⚠️ Could not add column '{col_name}': {e}")
-
 with app.app_context():
     db.create_all()
-    ensure_columns_exist()
-    print("[init_db] Tables initialized and verified ✅")
+    print("[init_db] Tables initialized ✅")
 
-# ---------------- Login ---------------- #
+# ---------------- Publer API Config ---------------- #
+PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
+PUBLER_WORKSPACE_ID = os.getenv("PUBLER_WORKSPACE_ID")
+PUBLER_USER_ID = os.getenv("PUBLER_USER_ID")
+
+PUBLER_BASE = "https://api.publer.io/v1"
+
+def publer_headers():
+    return {"Authorization": f"Bearer {PUBLER_API_KEY}", "Content-Type": "application/json"}
+
+# ---------------- Routes ---------------- #
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -71,7 +55,7 @@ def login():
             and password == os.getenv("APP_PASSWORD")
         ):
             session["user"] = username
-            flash("Welcome back, " + username + "!", "success")
+            flash(f"Welcome back, {username}!", "success")
             return redirect(url_for("dashboard"))
         else:
             flash("Invalid login credentials", "danger")
@@ -83,7 +67,6 @@ def logout():
     flash("You’ve been logged out.", "info")
     return redirect(url_for("login"))
 
-# ---------------- Dashboard ---------------- #
 @app.route("/")
 def dashboard():
     if "user" not in session:
@@ -100,23 +83,8 @@ def dashboard():
         total_revenue=total_revenue,
     )
 
-# ---------------- Scheduler ---------------- #
-def update_data():
-    with app.app_context():
-        new_entry = Analytics(
-            platform="Awin",
-            clicks=120,
-            impressions=3000,
-            conversions=5,
-            revenue=78.23,
-        )
-        db.session.add(new_entry)
-        db.session.commit()
-        print(f"[Scheduler] Data updated at {datetime.utcnow()}")
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(update_data, "interval", hours=6)
-scheduler.start()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+# ---------------- Quick Actions ---------------- #
+@app.route("/test_publer")
+def test_publer():
+    try:
+        res = requests.get(f"{PUBLER_BASE}/
