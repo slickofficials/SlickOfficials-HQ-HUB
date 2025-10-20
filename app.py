@@ -25,7 +25,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-# ✅ Ensure tables always exist (even on Render cold start)
+# ✅ Create tables safely (avoids Render deploy error)
 with app.app_context():
     db.create_all()
 
@@ -160,7 +160,6 @@ def dashboard():
 
     analytics = Analytics.query.order_by(Analytics.created_at.desc()).limit(10).all()
 
-    # If table empty, show one test record automatically
     if not analytics:
         test_entry = Analytics(metric_name="Test Metric", metric_value="123")
         db.session.add(test_entry)
@@ -191,7 +190,6 @@ def json_analytics():
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
-        # Add test record if Analytics is empty
         if Analytics.query.count() == 0:
             db.session.add(Analytics(metric_name="Initial Setup", metric_value="0"))
             db.session.commit()
