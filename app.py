@@ -6,13 +6,12 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "fallback_secret")
 
-# ---------------- Database Config ---------------- #
+# Database config
 db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
@@ -35,18 +34,28 @@ with app.app_context():
     db.create_all()
     print("[init_db] Tables initialized ✅")
 
-# ---------------- Login ---------------- #
+# ---------------- Helpers ---------------- #
+PUBLER_API_KEY = os.getenv("PUBLER_API_KEY")
+PUBLER_WORKSPACE_ID = os.getenv("PUBLER_WORKSPACE_ID")
+PUBLER_BASE = "https://api.publer.io/v1"
+
+def get_publer_headers():
+    return {"Authorization": f"Bearer {PUBLER_API_KEY}", "Content-Type": "application/json"}
+
+# ---------------- Routes ---------------- #
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "ok", "message": "Slickofficials HQ running smoothly 🚀"})
+
+# --- Login --- #
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        if (
-            username == os.getenv("APP_USERNAME")
-            and password == os.getenv("APP_PASSWORD")
-        ):
+        if username == os.getenv("APP_USERNAME") and password == os.getenv("APP_PASSWORD"):
             session["user"] = username
-            flash(f"Welcome back, {username}!", "success")
+            flash("Welcome back, " + username + "!", "success")
             return redirect(url_for("dashboard"))
         else:
             flash("Invalid login credentials", "danger")
@@ -58,7 +67,7 @@ def logout():
     flash("You’ve been logged out.", "info")
     return redirect(url_for("login"))
 
-# ---------------- Dashboard ---------------- #
+# --- Dashboard --- #
 @app.route("/")
 def dashboard():
     if "user" not in session:
@@ -75,65 +84,39 @@ def dashboard():
         total_revenue=total_revenue,
     )
 
-# ---------------- Publer API Quick Actions ---------------- #
+# --- Publer Test --- #
 @app.route("/test-publer")
 def test_publer():
-    api_key = os.getenv("PUBLER_API_KEY")
-    workspace_id = os.getenv("PUBLER_WORKSPACE_ID")
-    if not api_key or not workspace_id:
+    if not PUBLER_API_KEY or not PUBLER_WORKSPACE_ID:
         return jsonify({"error": "Missing Publer credentials"}), 400
+    try:
+        res = requests.get(f"{PUBLER_BASE}/workspaces/{PUBLER_WORKSPACE_ID}", headers=get_publer_headers())
+        return jsonify(res.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    headers = {"Authorization": f"Bearer {api_key}"}
-    url = f"https://api.publer.io/v1/workspaces/{workspace_id}"
-    res = requests.get(url, headers=headers)
-    return jsonify(res.json())
-
+# --- Recent Posts --- #
 @app.route("/recent-posts")
 def recent_posts():
-    api_key = os.getenv("PUBLER_API_KEY")
-    workspace_id = os.getenv("PUBLER_WORKSPACE_ID")
-    if not api_key or not workspace_id:
+    if not PUBLER_API_KEY or not PUBLER_WORKSPACE_ID:
         return jsonify({"error": "Missing Publer credentials"}), 400
+    try:
+        res = requests.get(f"{PUBLER_BASE}/posts?workspace_id={PUBLER_WORKSPACE_ID}&limit=5", headers=get_publer_headers())
+        return jsonify(res.json())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    headers = {"Authorization": f"Bearer {api_key}"}
-    url = f"https://api.publer.io/v1/workspaces/{workspace_id}/posts?limit=5"
-    res = requests.get(url, headers=headers)
-    return jsonify(res.json())
-
-# ---------------- Analytics Scheduler ---------------- #
+# --- Scheduler --- #
 def update_data():
     with app.app_context():
-        new_entry = Analytics(
-            platform="Awin",
-            clicks=120,
-            impressions=3000,
-            conversions=5,
-            revenue=78.23,
-        )
+        new_entry = Analytics(platform="Awin", clicks=120, impressions=3000, conversions=5, revenue=78.23)
         db.session.add(new_entry)
         db.session.commit()
         print(f"[Scheduler] Data updated at {datetime.utcnow()}")
 
-# ---------------- Keep Render Alive ---------------- #
-def ping_self():
-    try:
-        url = os.getenv("RENDER_EXTERNAL_URL")
-        if url:
-            requests.get(f"{url}/ping")
-            print(f"[Heartbeat] Pinged {url}/ping ❤️")
-    except Exception as e:
-        print(f"[Heartbeat Error] {e}")
-
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_data, "interval", hours=6)
-scheduler.add_job(ping_self, "interval", minutes=10)
 scheduler.start()
 
-# ---------------- Health Check ---------------- #
-@app.route("/ping")
-def ping():
-    return jsonify({"status": "ok", "message": "Slickofficials HQ running smoothly 🚀"}), 200
-
-# ---------------- Run ---------------- #
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
