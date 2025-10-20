@@ -1,20 +1,34 @@
 services:
   - type: web
-    name: slickofficials-hq-hub
+    name: slickofficials-hq
     env: python
-    plan: free
+    region: frankfurt  # you can change this (e.g. oregon, singapore, etc.)
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
       - key: APP_USERNAME
         sync: false
       - key: APP_PASSWORD
         sync: false
       - key: APP_SECRET_KEY
-        generateValue: true
+        sync: false
       - key: DATABASE_URL
+        fromDatabase:
+          name: slickofficials-db
+          property: connectionString
+      - key: PUBLER_API_KEY
+        sync: false
+      - key: PUBLER_WORKSPACE_ID
+        sync: false
+      - key: PUBLER_USER_ID
+        sync: false
+      - key: AWIN_PUBLISHER_ID
+        sync: false
+      - key: RAKUTEN_SCOPE_ID
         sync: false
       - key: OPENAI_API_KEY
         sync: false
-      - key: PUBLER_API_KEY
-        sync: false
+
+databases:
+  - name: slickofficials-db
+    plan: free
