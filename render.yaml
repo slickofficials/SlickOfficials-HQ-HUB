@@ -1,20 +1,20 @@
 services:
   - type: web
-    name: slickofficials-hq
+    name: publer-dashboard
     env: python
-    region: frankfurt  # you can change this (e.g. oregon, singapore, etc.)
-    buildCommand: pip install -r requirements.txt
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
     envVars:
-      - key: APP_USERNAME
-        sync: false
-      - key: APP_PASSWORD
-        sync: false
+      - key: FLASK_ENV
+        value: production
       - key: APP_SECRET_KEY
-        sync: false
+        generateValue: true
       - key: DATABASE_URL
         fromDatabase:
-          name: slickofficials-db
+          name: publer-db
           property: connectionString
       - key: PUBLER_API_KEY
         sync: false
@@ -22,13 +22,11 @@ services:
         sync: false
       - key: PUBLER_USER_ID
         sync: false
-      - key: AWIN_PUBLISHER_ID
+      - key: APP_USERNAME
         sync: false
-      - key: RAKUTEN_SCOPE_ID
-        sync: false
-      - key: OPENAI_API_KEY
+      - key: APP_PASSWORD
         sync: false
 
 databases:
-  - name: slickofficials-db
+  - name: publer-db
     plan: free
