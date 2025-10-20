@@ -6,17 +6,13 @@ from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
 
-# ------------------------------
 # Load environment variables
-# ------------------------------
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "fallback_secret")
 
-# ------------------------------
-# Database Configuration
-# ------------------------------
+# ---------------- Database Config ---------------- #
 db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
@@ -25,10 +21,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
-
-# ------------------------------
-# Models
-# ------------------------------
+# ---------------- Models ---------------- #
 class Analytics(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     platform = db.Column(db.String(50))
@@ -38,15 +31,11 @@ class Analytics(db.Model):
     revenue = db.Column(db.Float)
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
-
 with app.app_context():
     db.create_all()
-    print("[init_db] ✅ Database initialized.")
+    print("[init_db] Tables initialized ✅")
 
-
-# ------------------------------
-# Login Routes
-# ------------------------------
+# ---------------- Login ---------------- #
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -63,17 +52,13 @@ def login():
             flash("Invalid login credentials", "danger")
     return render_template("login.html")
 
-
 @app.route("/logout")
 def logout():
     session.pop("user", None)
     flash("You’ve been logged out.", "info")
     return redirect(url_for("login"))
 
-
-# ------------------------------
-# Dashboard
-# ------------------------------
+# ---------------- Dashboard ---------------- #
 @app.route("/")
 def dashboard():
     if "user" not in session:
@@ -82,7 +67,6 @@ def dashboard():
     data = Analytics.query.order_by(Analytics.date.desc()).limit(10).all()
     total_clicks = sum(d.clicks for d in data)
     total_revenue = sum(d.revenue for d in data)
-
     return render_template(
         "dashboard.html",
         user=session["user"],
@@ -91,61 +75,32 @@ def dashboard():
         total_revenue=total_revenue,
     )
 
-
-# ------------------------------
-# Quick Action Routes (JSON)
-# ------------------------------
-PUBLER_BASE = "https://api.publer.io/v1"
-
-
+# ---------------- Publer API Quick Actions ---------------- #
 @app.route("/test-publer")
 def test_publer():
-    """Check Publer API connectivity."""
     api_key = os.getenv("PUBLER_API_KEY")
-    if not api_key:
-        return jsonify({"error": "Missing PUBLER_API_KEY"}), 400
+    workspace_id = os.getenv("PUBLER_WORKSPACE_ID")
+    if not api_key or not workspace_id:
+        return jsonify({"error": "Missing Publer credentials"}), 400
 
     headers = {"Authorization": f"Bearer {api_key}"}
-    res = requests.get(f"{PUBLER_BASE}/user", headers=headers)
-
-    if res.status_code == 200:
-        return jsonify(res.json())
-    else:
-        return jsonify({"error": f"Publer test failed ({res.status_code})"}), 500
-
+    url = f"https://api.publer.io/v1/workspaces/{workspace_id}"
+    res = requests.get(url, headers=headers)
+    return jsonify(res.json())
 
 @app.route("/recent-posts")
 def recent_posts():
-    """Fetch recent posts from Publer."""
     api_key = os.getenv("PUBLER_API_KEY")
     workspace_id = os.getenv("PUBLER_WORKSPACE_ID")
-
     if not api_key or not workspace_id:
-        return jsonify({"error": "Missing Publer API key or Workspace ID"}), 400
+        return jsonify({"error": "Missing Publer credentials"}), 400
 
     headers = {"Authorization": f"Bearer {api_key}"}
-    res = requests.get(f"{PUBLER_BASE}/workspaces/{workspace_id}/posts", headers=headers)
+    url = f"https://api.publer.io/v1/workspaces/{workspace_id}/posts?limit=5"
+    res = requests.get(url, headers=headers)
+    return jsonify(res.json())
 
-    if res.status_code == 200:
-        return jsonify(res.json())
-    else:
-        return jsonify({"error": f"Failed to fetch posts ({res.status_code})"}), 500
-
-
-@app.route("/affiliate-stats")
-def affiliate_stats():
-    """Dummy affiliate stats route (can later connect to Awin or Rakuten)."""
-    return jsonify(
-        {
-            "awin": {"clicks": 230, "conversions": 9, "revenue": 54.70},
-            "rakuten": {"clicks": 180, "conversions": 7, "revenue": 49.30},
-        }
-    )
-
-
-# ------------------------------
-# Background Scheduler
-# ------------------------------
+# ---------------- Analytics Scheduler ---------------- #
 def update_data():
     with app.app_context():
         new_entry = Analytics(
@@ -157,16 +112,28 @@ def update_data():
         )
         db.session.add(new_entry)
         db.session.commit()
-        print(f"[Scheduler] Updated analytics at {datetime.utcnow()}")
+        print(f"[Scheduler] Data updated at {datetime.utcnow()}")
 
+# ---------------- Keep Render Alive ---------------- #
+def ping_self():
+    try:
+        url = os.getenv("RENDER_EXTERNAL_URL")
+        if url:
+            requests.get(f"{url}/ping")
+            print(f"[Heartbeat] Pinged {url}/ping ❤️")
+    except Exception as e:
+        print(f"[Heartbeat Error] {e}")
 
 scheduler = BackgroundScheduler()
 scheduler.add_job(update_data, "interval", hours=6)
+scheduler.add_job(ping_self, "interval", minutes=10)
 scheduler.start()
 
+# ---------------- Health Check ---------------- #
+@app.route("/ping")
+def ping():
+    return jsonify({"status": "ok", "message": "Slickofficials HQ running smoothly 🚀"}), 200
 
-# ------------------------------
-# Run Flask
-# ------------------------------
+# ---------------- Run ---------------- #
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000)
