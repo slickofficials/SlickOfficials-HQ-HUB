@@ -4,13 +4,14 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from apscheduler.schedulers.background import BackgroundScheduler
 from dotenv import load_dotenv
+from sqlalchemy import inspect, text
 
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv("APP_SECRET_KEY", "fallback_secret")
 
-# Database configuration
+# ---------------- Database Configuration ---------------- #
 db_url = os.getenv("DATABASE_URL", "sqlite:///local.db")
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://")
@@ -29,9 +30,35 @@ class Analytics(db.Model):
     revenue = db.Column(db.Float)
     date = db.Column(db.DateTime, default=datetime.utcnow)
 
+# ---------------- DB Auto-Healing ---------------- #
+def ensure_columns_exist():
+    """Ensures all expected columns exist in the Analytics table."""
+    with app.app_context():
+        inspector = inspect(db.engine)
+        columns = [col["name"] for col in inspector.get_columns("analytics")]
+
+        required_columns = {
+            "platform": "TEXT",
+            "clicks": "INTEGER",
+            "impressions": "INTEGER",
+            "conversions": "INTEGER",
+            "revenue": "FLOAT",
+            "date": "TIMESTAMP"
+        }
+
+        for col_name, col_type in required_columns.items():
+            if col_name not in columns:
+                try:
+                    db.session.execute(text(f"ALTER TABLE analytics ADD COLUMN {col_name} {col_type};"))
+                    db.session.commit()
+                    print(f"✅ Added missing column: {col_name}")
+                except Exception as e:
+                    print(f"⚠️ Could not add column '{col_name}': {e}")
+
 with app.app_context():
     db.create_all()
-    print("[init_db] Tables initialized ✅")
+    ensure_columns_exist()
+    print("[init_db] Tables initialized and verified ✅")
 
 # ---------------- Login ---------------- #
 @app.route("/login", methods=["GET", "POST"])
