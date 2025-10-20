@@ -1,134 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Neural Control System{% endblock %}</title>
-
-  <!-- Fonts & Style -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Slickofficials HQ{% endblock %}</title>
+  <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/733/733547.png">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700&display=swap');
+
     :root {
-      --accent: #00c6ff;
-      --accent-dark: #0072ff;
-      --bg-dark: #0f0f0f;
-      --bg-glass: rgba(255, 255, 255, 0.06);
+      --bg-dark: #020617;
+      --bg-gradient: linear-gradient(135deg, #03071e 0%, #240046 100%);
+      --accent: #00eaff;
+      --text-light: #f8f9fa;
     }
 
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      font-family: 'Orbitron', sans-serif;
     }
 
     body {
-      height: 100vh;
-      font-family: 'Poppins', sans-serif;
-      background: radial-gradient(circle at 30% 20%, #121212, #000);
-      color: white;
+      background: var(--bg-gradient);
+      color: var(--text-light);
+      min-height: 100vh;
       overflow-x: hidden;
-      animation: fadeIn 0.8s ease-in-out;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      animation: bgShift 15s ease-in-out infinite alternate;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes bgShift {
+      0% { background: linear-gradient(135deg, #0a0026, #240046); }
+      100% { background: linear-gradient(135deg, #0b002e, #1a0050); }
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 25px rgba(0, 198, 255, 0.2);
+      border-radius: 12px;
+      backdrop-filter: blur(12px);
     }
 
     header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 22px 50px;
-      background: var(--bg-glass);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      box-shadow: 0 0 25px rgba(0,0,0,0.6);
-    }
-
-    header h1 {
-      font-size: 24px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    header a {
-      text-decoration: none;
-      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    header a:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0,198,255,0.4);
+      width: 100%;
+      padding: 18px 0;
+      text-align: center;
+      color: var(--accent);
+      font-size: 22px;
+      letter-spacing: 1.5px;
+      text-shadow: 0 0 12px rgba(0,255,255,0.4);
+      border-bottom: 1px solid rgba(0,255,255,0.1);
     }
 
     main {
-      padding: 40px 60px;
-      animation: fadeIn 1s ease-in-out;
+      width: 100%;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 20px;
     }
 
     footer {
       text-align: center;
       padding: 20px;
-      font-size: 14px;
-      opacity: 0.6;
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
       border-top: 1px solid rgba(255,255,255,0.1);
-      margin-top: 60px;
-      background: rgba(255,255,255,0.03);
-    }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 0 40px rgba(0,0,0,0.6);
-      backdrop-filter: blur(10px);
-    }
-
-    .btn {
-      display: inline-block;
-      text-decoration: none;
-      background: linear-gradient(90deg, var(--accent), var(--accent-dark));
-      padding: 12px 24px;
-      border-radius: 10px;
-      color: white;
-      font-weight: 500;
-      transition: 0.3s;
-    }
-
-    .btn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(0,198,255,0.4);
+      margin-top: auto;
+      letter-spacing: 1px;
     }
 
     .fade-in {
-      animation: fadeIn 1s ease-in-out;
+      animation: fadeIn 1s ease forwards;
+      opacity: 0;
     }
 
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent);
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Buttons shared globally */
+    .btn {
+      border: none;
+      cursor: pointer;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: white;
+      background: linear-gradient(90deg, #0072ff, #00c6ff);
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 15px rgba(0,198,255,0.4);
+    }
   </style>
 </head>
-
 <body>
   <header>
-    <h1>🧠 Neural Control System</h1>
-    {% if session.get('user') %}
-    <a href="/logout">Logout</a>
-    {% endif %}
+    ⚡ Slickofficials HQ • Command Portal
   </header>
 
-  <main class="fade-in">
+  <main>
     {% block content %}{% endblock %}
   </main>
 
   <footer>
-    Crafted with ⚙️ precision • {{ datetime.utcnow().year if datetime else "2025" }}
+    <p>© 2025 <strong>Slickofficials HQ</strong> — A unit of <strong>Amson Multi Global Ltd</strong>.</p>
+    <p>All Rights Reserved. Unauthorized access is strictly prohibited.</p>
   </footer>
 </body>
 </html>
