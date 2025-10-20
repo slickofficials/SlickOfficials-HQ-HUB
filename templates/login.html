@@ -1,61 +1,52 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Slickofficials HQ — Login</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Orbitron:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#02030a;--card:#0b1220;--accent:#00eaff;--muted:#9aa6b2}
-    body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top,#051022,#000);color:#e6eef6;margin:0;display:flex;align-items:center;justify-content:center;height:100vh}
-    .wrap{width:420px;padding:28px;border-radius:14px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));box-shadow:0 10px 30px rgba(2,6,23,0.7);border:1px solid rgba(0,255,255,0.06)}
-    h1{font-family:'Orbitron',sans-serif;color:var(--accent);margin:0 0 14px;font-size:1.6rem}
-    label{display:block;margin-top:12px;color:var(--muted);font-size:0.85rem}
-    input[type="text"],input[type="password"],input[type="email"]{width:100%;padding:12px 14px;margin-top:6px;border-radius:10px;border:none;background:#071023;color:#eaf4ff;outline:none;box-shadow:inset 0 2px 6px rgba(0,0,0,0.5)}
-    .row{display:flex;justify-content:space-between;align-items:center;margin-top:14px}
-    .btn{background:linear-gradient(90deg,#00eaff,#0078ff);color:white;padding:10px 16px;border-radius:10px;border:none;font-weight:600;cursor:pointer}
-    .small{font-size:0.85rem;color:var(--muted)}
-    .flash{padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.02);color:#ffdede;border:1px solid rgba(255,0,0,0.12)}
-    .eye{cursor:pointer; margin-left:8px; color:var(--muted)}
-    .links{margin-top:12px;text-align:right}
+    body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top,#0b0f1a,#000);color:#e9f5ff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}
+    .card{width:360px;padding:28px;border-radius:12px;background:linear-gradient(180deg,#07102266,#08142a99);box-shadow:0 10px 40px rgba(0,0,0,0.6);backdrop-filter:blur(6px);border:1px solid rgba(0,255,255,0.06)}
+    h1{font-family:'Orbitron',sans-serif;color:#00eaff;margin:0 0 12px;font-size:20px;text-align:center}
+    label{display:block;color:#cfeeff;margin-bottom:6px;font-size:13px}
+    input[type=text],input[type=password],input[type=email],input[type=datetime-local]{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#071226;color:#fff;margin-bottom:12px}
+    .btn{width:100%;padding:11px;border-radius:10px;border:none;background:linear-gradient(90deg,#00eaff,#0078ff);color:#fff;font-weight:700;cursor:pointer}
+    .row{display:flex;gap:10px;align-items:center}
+    .link{font-size:13px;color:#9fe9ff;text-decoration:none}
+    .flash{padding:8px;background:#001825;border-radius:8px;margin-bottom:12px;color:#fff}
+    .pw-eye{position:relative}
+    .toggle-eye{position:absolute;right:10px;top:10px;cursor:pointer;color:#9fe9ff}
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="card">
     <h1>⚙️ Slickofficials HQ</h1>
-
     {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, msg in messages %}
-        <div class="flash">{{ msg }}</div>
-      {% endfor %}
-    {% endif %}
+      {% if messages %}
+        {% for cat, msg in messages %}
+          <div class="flash">{{ msg }}</div>
+        {% endfor %}
+      {% endif %}
     {% endwith %}
-
     <form method="post" action="{{ url_for('login') }}">
       <label>Username</label>
-      <input name="username" type="text" placeholder="admin" required>
-
+      <input type="text" name="username" required placeholder="admin">
       <label>Password</label>
-      <div style="display:flex;align-items:center">
-        <input id="password" name="password" type="password" placeholder="••••••••" required>
-        <span class="eye" onclick="togglePw()" title="Toggle visibility">👁️</span>
+      <div class="pw-eye">
+        <input type="password" name="password" id="pw" required placeholder="••••••••">
+        <span class="toggle-eye" onclick="togglePw()">👁️</span>
       </div>
-
-      <div class="row" style="margin-top:18px">
-        <div class="small">Admin only</div>
-        <button class="btn" type="submit">Enter Machine World</button>
-      </div>
-
-      <div class="links">
-        <a href="{{ url_for('forgot_password') }}" style="color: #9fdcff; text-decoration:none">Forgot password?</a>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+        <a href="{{ url_for('forgot_password') }}" class="link">Forgot password?</a>
+        <button class="btn" type="submit">Enter the Machine</button>
       </div>
     </form>
   </div>
 
   <script>
     function togglePw(){
-      const p = document.getElementById('password');
+      var p = document.getElementById('pw');
       if(p.type === 'password') p.type = 'text'; else p.type = 'password';
     }
   </script>
